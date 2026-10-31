@@ -255,6 +255,51 @@ details.panel[open] > summary h2::after{content:"  -"}
   .ticket{padding:16px 16px}
 }
 .icon{flex:none}
+.whoami{text-align:center;color:var(--dim);font-size:20px;margin:0 0 12px}
+.hint{text-align:center;color:var(--dim);font-size:20px;margin:8px 0 16px}
+.gold{color:var(--gold);margin-bottom:8px}
+.hostmsg b{color:var(--gold);font-weight:normal;letter-spacing:2px}
+.hostmsg p{font-size:28px;margin-top:4px}
+.paused{text-align:center}
+.paused h2{font-size:48px}
+.votebox select{margin-top:10px}
+.current{display:flex;align-items:center;gap:10px;margin:4px 0 2px}
+.stubline{margin-top:12px;border-top:4px dashed var(--cream-dk);padding-top:10px}
+.stubcard.small{margin-top:6px;padding:6px 14px 6px 24px;max-width:220px}
+.stubcard.small b,.stubcard.small i{font-size:34px}
+.stubnote{color:#7d6542;font-size:20px;margin-top:6px}
+.timer.held{border-color:var(--purple);color:var(--purple)}
+@media (max-width:560px){
+  body{font-size:22px}
+  .wrap{padding:12px 12px 48px}
+  .panel{padding:14px;margin-bottom:12px}
+  .panel h2{font-size:26px}
+  h1{font-size:40px}
+  .lights{padding-top:24px}
+  .ticket{padding:14px 16px;margin-bottom:12px}
+  .role{min-height:150px;padding:14px}
+  .role .back b{font-size:48px}
+  .role .front .rname{font-size:48px}
+  .feed .news,.inbox .news{font-size:20px;padding:6px 0}
+}
+body.screen .wrap{max-width:1500px;padding:16px 28px}
+body.screen h1{font-size:72px;margin-bottom:16px}
+body.screen .lights{max-width:1500px}
+.screengrid{display:grid;grid-template-columns:minmax(320px,1fr) 2fr;gap:20px;align-items:start}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.tcard{display:flex;flex-direction:column;align-items:center;text-align:center;background:#1d0f34;border:4px solid #3a2560;padding:10px 6px}
+.tcard canvas{width:84px;height:84px;image-rendering:pixelated;background:#2a1748;border:3px solid var(--red-dk)}
+.tcard b{font-weight:normal;font-size:24px;line-height:1;margin-top:6px;color:var(--cream)}
+.tcard span{color:var(--dim);font-size:20px}
+.tcard em{font-style:normal;background:var(--rc);color:var(--black);padding:0 6px;margin-top:4px;font-size:20px}
+.tcard.gone{opacity:.45}
+.tcard.gone canvas{filter:grayscale(1)}
+body.screen .feed .news{font-size:28px}
+body.screen .feed .news:first-of-type{font-size:36px;color:var(--cream)}
+body.screen .timer.big{font-size:110px}
+.qrbig{background:var(--cream);padding:16px;display:inline-block;line-height:0;margin:10px 0}
+.winner{font-size:56px}
+@media (max-width:900px){ .screengrid{grid-template-columns:1fr} }
 .timer{display:table;margin:0 auto 12px;padding:2px 14px 4px;background:var(--black);border:4px solid var(--gold);color:var(--gold);font-size:30px;letter-spacing:2px}
 .timer.big{font-size:64px;margin:4px 0 0;padding:4px 20px}
 .timer.done{border-color:var(--red);color:var(--red);animation:blink 1s steps(1) infinite}
@@ -354,7 +399,7 @@ function take(v){ G = v; lastText = JSON.stringify(v); clockOffset = (v.now || D
 async function call(method, body){
   const headers = {"content-type":"application/json"};
   if (isAdmin() && Safe.get(PIN)) headers["x-admin-pin"] = Safe.get(PIN);
-  const url = method === "GET" && !isAdmin()
+  const url = method === "GET" && !isAdmin() && view !== "screen"
     ? `/api/game?pid=${encodeURIComponent(Safe.get(ME) || "")}&t=${encodeURIComponent(Safe.get(TOK) || "")}`
     : "/api/game";
   const r = await fetch(url, {method, headers, body: body ? JSON.stringify(body) : undefined, cache:"no-store"});
@@ -559,11 +604,21 @@ const opts = (list, g, blank="Choose a player") => `<option value="">${blank}</o
 const castLabel = p => `${esc(CHARACTERS[p.char].name)} <span style="color:var(--dim)">(${esc(p.name)})</span>`;
 function flash(text){ const m = $("#toast"); m.textContent = text; m.classList.add("on"); clearTimeout(flash.t); flash.t = setTimeout(() => m.classList.remove("on"), 2600); }
 async function doAct(kind, data){ const err = await act(Safe.get(ME), kind, data); if (err) flash(err); lastSig = ""; await renderPlayer(true); }
-function feedHTML(g, limit=4){
-  const items = g.feed.slice(-limit).reverse();
+const NEWS_LABEL = {tip:"ANONYMOUS TIP", leak:"LEAKED SECRET", clue:"CLUE", host:"HOST"};
+const newsLine = f => `<div class="news ${f.kind}">${NEWS_LABEL[f.kind] ? `<b>${NEWS_LABEL[f.kind]}:</b> ` : ""}${esc(f.text)}</div>`;
+function feedHTML(g, limit=5){
+  const items = (g.feed || []).slice(-limit).reverse();
   if (!items.length) return "";
-  return `<div class="panel feed" style="--c:var(--pink)"><h2>Carnival news</h2>${items.map(f => `
-    <div class="news ${f.kind}">${f.kind === "tip" ? `<b>ANONYMOUS TIP:</b> ` : f.kind === "leak" ? `<b>LEAKED SECRET:</b> ` : f.kind === "clue" ? `<b>CLUE:</b> ` : ""}${esc(f.text)}</div>`).join("")}</div>`;
+  return `<details class="panel feed" style="--c:var(--pink)" data-keep="news" data-default="open"><summary><h2 style="display:inline">Carnival news</h2></summary>${items.map(newsLine).join("")}</details>`;
+}
+// Host messages stay pinned at the top for three minutes
+function hostBanner(g){
+  const h = g.hostMsg;
+  if (!h || (Date.now() + clockOffset) - h.at > 180000) return "";
+  return `<div class="panel hostmsg" style="--c:var(--gold)"><b>FROM THE HOST</b><p>${esc(h.text)}</p></div>`;
+}
+function pauseBanner(g){
+  return g.paused ? `<div class="panel paused" style="--c:var(--purple)"><h2>PAUSED</h2><p>Hang tight. The host will start things back up.</p></div>` : "";
 }
 function inboxHTML(g, pid){
   const items = (g.inbox[pid] || []).slice().reverse();
@@ -577,7 +632,10 @@ function wireInbox(){
   box.addEventListener("toggle", () => { if (box.open) Safe.set("mc-seen-" + box.dataset.pid, box.dataset.n); const n = box.querySelector(".new"); if (box.open && n) n.remove(); });
 }
 function timerHTML(g, big){
-  return g.timer && g.timer.endsAt ? `<div class="timer ${big ? "big" : ""}" data-ends="${g.timer.endsAt}"></div>` : "";
+  if (!g.timer) return "";
+  if (g.timer.endsAt) return `<div class="timer ${big ? "big" : ""}" data-ends="${g.timer.endsAt}"></div>`;
+  if (g.timer.remaining !== undefined) { const l = Math.round(g.timer.remaining / 1000); return `<div class="timer held ${big ? "big" : ""}">${Math.floor(l/60)}:${String(l%60).padStart(2,"0")}</div>`; }
+  return "";
 }
 function tickTimers(){
   document.querySelectorAll(".timer[data-ends]").forEach(el => {
@@ -644,6 +702,10 @@ async function renderPlayer(force){
     return;
   }
 
+  if (p.left) {
+    app.innerHTML = `<h1>MIDNIGHT<br>CARNIVAL</h1><div class="panel" style="--c:var(--purple)"><h2>You have left the game</h2><p>Thanks for coming to the carnival. If this is a mistake, find the host.</p></div>`;
+    return;
+  }
   if (inCrowd(p)) { renderCrowd(g, p); return; }
 
   const c = {...CHARACTERS[p.char], ...(g.myChar || {})};
@@ -652,10 +714,13 @@ async function renderPlayer(force){
   app.innerHTML = `
     ${overBanner(g, p)}
     ${phaseChip(g)}
-    <p class="sub" style="margin-top:0">Welcome, ${esc(p.name)}. Keep this screen to yourself.</p>
+    ${pauseBanner(g)}
+    ${hostBanner(g)}
+    <p class="whoami">Playing as ${esc(p.name)}. Keep this screen to yourself.</p>
     ${pending ? requestHTML(g, p, pending) : ""}
     ${g.status === "live" ? promptsHTML(g, p) : ""}
     ${g.mods && g.mods.spotlight && g.mods.spotlight.id === p.id && g.mods.spotlight.status === "pending" ? `<div class="panel req" style="--c:var(--gold)"><h2>YOU ARE IN THE SPOTLIGHT</h2><p>Stand up and read your secret out loud, or take an extra vote against you this round.</p></div>` : ""}
+    ${g.status === "live" && g.phase === "vote" ? votePanel(g, p, "vote") : ""}
     <details class="ticket ${justJoined ? "deal" : ""}" data-keep="card" data-default="open">
       <summary class="tickethead">
         <div class="stub"><span>ADMIT ONE</span><span>No. ${String(p.char+1).padStart(3,"0")} <span class="fold"></span></span></div>
@@ -665,6 +730,7 @@ async function renderPlayer(force){
       <details data-keep="motive"><summary>Motive ${KNIFE}</summary><p style="margin-top:6px">${esc(c.motive)}</p></details>
       <details data-keep="secret"><summary>Secret</summary><p style="margin-top:6px">${esc(c.secret)}</p></details>
       <details data-keep="rumor"><summary>Rumor</summary><p style="margin-top:6px">${esc(c.rumor)}</p></details>
+      ${stubLine(g, p)}
     </details>
     ${role ? `
       <div class="role" id="role" style="--rc:${role.color}" aria-label="Hold to reveal your role">
@@ -676,20 +742,18 @@ async function renderPlayer(force){
           <p>${esc(role.text)}</p>
         </div>
       </div>
-      <p class="sub" style="font-size:20px;margin-top:10px">Let go to hide it again.</p>`
+      <p class="hint">Hold the card to see your role. Let go to hide it.</p>`
     : `
       <div class="panel" style="--c:var(--purple)">
         <div class="waiting"><div class="spin">+</div><br>The host has not dealt roles yet.<br>Keep this page open.</div>
       </div>`}
     ${g.status === "live" && role ? powersHTML(g, p) : ""}
-    ${g.status === "live" ? stubHTML(g, p) : ""}
-    ${g.status === "live" && g.phase === "vote" ? votePanel(g, p, "vote") : ""}
     ${g.status !== "lobby" ? inboxHTML(g, p.id) : ""}
     ${g.status !== "lobby" ? feedHTML(g) : ""}`;
 
   const pc = app.querySelector(".portrait"); if (pc) drawPortrait(pc, c);
   wireRoleCard();
-  wirePicks(g, p, "vote");
+  wireVote(g, p, "vote");
   wirePowers(g, p);
   wireKeep();
   wireRequest(p);
@@ -727,14 +791,12 @@ function prompt(title, body, kind, id, buttons){
 function wirePrompts(){
   $("#app").querySelectorAll("[data-pr]").forEach(b => b.onclick = () => { const [kind, req, choice] = b.dataset.pr.split("|"); doAct(kind, {req, choice}); });
 }
-function stubHTML(g, p){
+function stubLine(g, p){
   if (!g.stubsOut || !g.stubs[p.id]) return "";
   const [sym, num] = g.stubs[p.id].split(" ");
-  return `<div class="panel" style="--c:var(--gold)">
-    <h2>Your ticket stub</h2>
-    <div class="stubcard"><span class="tear"></span><b>${sym}</b><i>${num}</i></div>
-    ${EVIL.includes(p.role) ? `<p class="dim" style="margin-top:8px">Your stub matches no one.</p>` : ""}
-  </div>`;
+  return `<div class="stubline"><span class="label" style="margin:0">Ticket stub</span>
+    <div class="stubcard small"><span class="tear"></span><b>${sym}</b><i>${num}</i></div>
+    ${EVIL.includes(p.role) ? `<p class="stubnote">Your stub matches no one.</p>` : ""}</div>`;
 }
 
 /* ----- Detective request popup ----- */
@@ -764,29 +826,39 @@ function wireRequest(p){
 /* ----- Voting ----- */
 function votePanel(g, p, kind){
   const mine = kind === "vote" ? g.votes[p.id] : g.crowdVotes[p.id];
-  const targets = livingCast(g).filter(t => t.id !== p.id);
+  const targets = livingCast(g).filter(t => kind === "crowdvote" || t.id !== p.id)
+    .sort((a,b) => CHARACTERS[a.char].name.localeCompare(CHARACTERS[b.char].name));
   const ring = p.role === "ringmaster" && g.ringRevealed === p.id;
-  return `<div class="panel" style="--c:var(--gold)">
-    <h2>${kind === "vote" ? "Who should go?" : "Who did it?"}</h2>
-    ${ring ? `<p style="margin-bottom:8px;color:var(--gold)">Your vote counts three times.</p>` : ""}
-    <div class="picks">${targets.map(t => `
-      <button class="pick ${mine === t.id ? "on" : ""}" data-t="${t.id}">${portraitHTML("mini")}<span>${castLabel(t)}</span></button>`).join("")}
-    </div>
-    <p class="sub" style="font-size:20px;margin:10px 0 0">${mine ? "Vote locked in. You can change it until voting closes." : "Tap a player."}</p>
+  const cur = mine && byId(g, mine);
+  return `<div class="panel votebox" style="--c:var(--gold)">
+    <h2>${kind === "vote" ? "Cast your vote" : "The crowd's vote"}</h2>
+    ${ring ? `<p class="gold">Your vote counts three times.</p>` : ""}
+    ${cur ? `<div class="current">${portraitHTML("mini cur")}<span>Your vote: <b>${castLabel(cur)}</b></span></div>` : `<p class="dim">You have not voted yet.</p>`}
+    <select id="voteSel">${opts(targets, g, cur ? "Change your vote..." : "Choose a player...")}</select>
+    <button class="btn block" id="voteBtn" type="button">${cur ? "Change vote" : "Lock in vote"}</button>
+    ${kind === "crowdvote" ? crowdTallyHTML(g) : ""}
   </div>`;
 }
-function wirePicks(g, p, kind){
-  const targets = livingCast(g).filter(t => t.id !== p.id);
-  $("#app").querySelectorAll(".pick").forEach((b,i) => {
-    drawPortrait(b.querySelector("canvas"), CHARACTERS[targets[i].char]);
-    b.onclick = () => doAct(kind, {target:b.dataset.t});
-  });
+function crowdTallyHTML(g){
+  const r = g.crowdTally || [];
+  if (!r.length) return `<p class="dim" style="margin-top:10px">No crowd picks yet.</p>`;
+  const tie = r.length > 1 && r[0][1] === r[1][1];
+  return `<div class="label" style="margin-top:12px">Crowd so far</div>
+    <ul class="tally">${r.slice(0,6).map(([id,n]) => `<li>${n} &times; ${castLabel(byId(g,id))}</li>`).join("")}</ul>
+    <p class="dim">${tie ? "Tied right now. A tie means the crowd's vote does not count." : `The crowd's vote is going to ${esc(charName(g, r[0][0]))}.`}</p>`;
+}
+function wireVote(g, p, kind){
+  const cur = $("#app").querySelector("canvas.cur");
+  const mine = kind === "vote" ? g.votes[p.id] : g.crowdVotes[p.id];
+  if (cur && mine) drawPortrait(cur, CHARACTERS[byId(g, mine).char]);
+  const btn = $("#voteBtn"); if (!btn) return;
+  btn.onclick = () => { const t = $("#voteSel").value; if (!t) return flash("Choose a player first."); doAct(kind, {target:t}); };
 }
 
 /* ----- Powers ----- */
 function powersHTML(g, p){
   const u = g.uses[p.id] || {}, voting = g.phase === "vote", others = livingCast(g).filter(x => x.id !== p.id);
-  const dead = castOf(g).filter(x => !x.alive);
+  const dead = castOf(g).filter(x => !x.alive && !x.left);
   const sel = (id, list, blank) => `<select id="${id}">${opts(list, g, blank)}</select>`;
   const waitVote = `<p class="dim">Your power works during the vote.</p>`;
   let body = "";
@@ -904,34 +976,40 @@ function renderCrowd(g, p){
   app.innerHTML = `
     ${overBanner(g, p)}
     ${phaseChip(g)}
+    ${pauseBanner(g)}
+    ${hostBanner(g)}
     ${was ? `
       <div class="panel" style="--c:var(--red)">
         <h2>YOU'RE OUT</h2>
         <p>You were ${esc(was.name)}${p.role ? `, the ${esc(ROLES[p.role].name)}` : ""}.</p>
         <p class="nospoil">No spoilers. Do not tell anyone your role, how you died, or anything you know.</p>
-      </div>` : `<p class="sub" style="margin-top:0">Welcome, ${esc(p.name)}.</p>`}
+      </div>` : `<p class="whoami">Watching as ${esc(p.name)}.</p>`}
     ${g.status === "live" ? promptsHTML(g, p) : ""}
-    <article class="ticket ${justJoined ? "deal" : ""}">
-      <div class="stub"><span>${was ? "GHOST PASS" : "GENERAL ADMISSION"}</span><span>CROWD</span></div>
-      <div class="who">${portraitHTML("portrait")}<div><h3>Spectator</h3><div class="job">${was ? "Formerly " + esc(was.name) : "The crowd"}</div></div></div>
+    ${g.status === "live" && g.phase === "vote" ? votePanel(g, p, "crowdvote") : ""}
+    <details class="ticket ${justJoined ? "deal" : ""}" data-keep="crowdcard" data-default="open">
+      <summary class="tickethead">
+        <div class="stub"><span>${was ? "GHOST PASS" : "GENERAL ADMISSION"}</span><span>CROWD <span class="fold"></span></span></div>
+        <div class="who">${portraitHTML("portrait")}<div><h3>Spectator</h3><div class="job">${was ? "Formerly " + esc(was.name) : "The crowd"}</div></div></div>
+      </summary>
       <div class="label">Bio</div>
       <p>${was ? "You are out of the show. You still have a seat in the stands. And a vote." : "The troupe was full when you arrived. No act. No motive. No secrets. Just a vote."}</p>
       <div class="label">How the crowd votes</div>
       <p>The crowd votes as one. Most picks wins. Ties do not count.</p>
-    </article>
+    </details>
     ${canHaunt ? `<div class="panel" style="--c:var(--pink)"><h2>${iconSVG("ghost",28)} Haunt someone</h2>
       <select id="t1">${opts(livingCast(g), g, "Choose who to haunt")}</select>
       <textarea id="tx" maxlength="${MSG_MAX}" rows="2" placeholder="What do you whisper?"></textarea>
       <button class="btn small" id="hauntBtn">Haunt them</button></div>` : ""}
     ${g.status !== "live" ? `<div class="panel" style="--c:var(--purple)"><div class="waiting">${g.status === "over" ? "The show is over." : "The show has not started yet."}</div></div>`
-      : g.phase === "vote" ? votePanel(g, p, "crowdvote")
-      : `<div class="panel" style="--c:var(--purple)"><div class="waiting"><div class="spin">+</div><br>Voting is closed.<br>Wait for the host.</div></div>`}
+      : g.phase === "vote" ? ""
+      : `<div class="panel" style="--c:var(--purple)"><div class="waiting">Voting is closed. Wait for the host.</div></div>`}
     ${inboxHTML(g, p.id)}
     ${feedHTML(g)}`;
   const pc = app.querySelector(".portrait"); if (pc) drawSilhouette(pc);
-  if (g.phase === "vote" && g.status === "live") wirePicks(g, p, "crowdvote");
+  if (g.phase === "vote" && g.status === "live") wireVote(g, p, "crowdvote");
   wirePrompts();
   wireInbox();
+  wireKeep();
   if ($("#hauntBtn")) $("#hauntBtn").onclick = () => { if (!$("#t1").value) return flash("Choose a player first."); doAct("haunt", {target:$("#t1").value, text:$("#tx").value}); };
 }
 
@@ -982,7 +1060,8 @@ async function renderAdmin(force){
       <td>${esc(p.name)}</td>
       <td class="hide-sm">${portraitHTML("mini")} ${p.spectator ? `<span class="dim">Spectator</span>` : esc(CHARACTERS[p.char].name)}</td>
       <td>${p.spectator ? `<span class="badge" style="--rc:#b9a6d6">Crowd</span>` : r ? `<span class="badge" style="--rc:${r.color}">${roleIcon(p.role,16)} ${r.name}</span>${p.formerRole ? ` <span class="dim">(was ${ROLES[p.formerRole].name})</span>` : ""}` : `<span class="dim">Not dealt</span>`}<br><span class="dim" style="font-size:18px">Code ${p.code}${g.stubs && g.stubs[p.id] ? ` &middot; Stub ${g.stubs[p.id]}` : ""}</span></td>
-      <td style="text-align:right">${p.spectator || g.status !== "live" ? "" : `<button class="btn small ${p.alive ? "" : "alt"}" data-id="${p.id}">${p.alive ? "Out" : "Undo"}</button>`}</td>
+      <td style="text-align:right;white-space:nowrap">${p.left ? `<span class="dim">Left</span>` : `${p.spectator || g.status !== "live" ? "" : `<button class="btn small ${p.alive ? "" : "alt"}" data-id="${p.id}">${p.alive ? "Out" : "Undo"}</button>`}
+        ${g.status === "live" ? `<button class="btn small ghost" data-left="${p.id}">Left</button>` : ""}`}</td>
     </tr>`;
   }).join("");
 
@@ -1013,6 +1092,7 @@ async function renderAdmin(force){
         ? `<p>Let them talk. Open the vote when you are ready.</p><button class="btn" id="openBtn">Open the vote</button>`
         : `<p>${Object.keys(g.votes).length} of ${alive.length} living players have voted. ${crowd.length ? `Crowd: ${Object.keys(g.crowdVotes).length} of ${crowd.length}.` : ""}</p>
            ${t.ranked.length ? `<ul class="tally">${t.ranked.map(([id,n]) => `<li>${n} &times; ${castLabel(byId(g,id))}</li>`).join("")}</ul>` : ""}
+           ${crowd.length ? `<p class="dim">Crowd picks: ${t.crowd && t.crowd.ranked.length ? t.crowd.ranked.map(([id,n]) => `${n} &times; ${esc(charName(g,id))}`).join(", ") : "none yet"}. ${t.crowd && t.crowd.pick ? `Their one vote goes to ${esc(charName(g, t.crowd.pick))}.` : t.crowd && t.crowd.ranked.length ? "Tied, so it does not count." : ""}</p>` : ""}
            <p class="dim">Night actions so far: ${[
              Object.keys(g.act.kill || {}).length ? `killers picked ${[...new Set(Object.values(g.act.kill))].map(x => esc(charName(g,x))).join(", ")}` : "",
              g.act.wolf ? `werewolf hunting ${esc(charName(g,g.act.wolf))}` : "",
@@ -1042,6 +1122,7 @@ async function renderAdmin(force){
       ${timerHTML(g, true) || `<p class="dim">No timer running. Phones show it when you start one.</p>`}
       <div class="row" style="margin-top:10px">${[1,2,3,5,10].map(m => `<button class="btn small alt" data-tm="${m*60}">${m} min</button>`).join("")}${g.timer ? `<button class="btn small ghost" data-tm="0">Stop</button>` : ""}</div>
     </div>` : ""}
+    ${g.status !== "none" ? controlsHTML(g) : ""}
     ${g.status === "live" ? leversHTML(g) : ""}
     ${lastRes}
     <div class="toolbar">
@@ -1055,6 +1136,12 @@ async function renderAdmin(force){
     </div>
     ${g.log.length ? `<details class="panel" style="--c:var(--purple)"><summary><h2 style="display:inline">Host log (${g.log.length})</h2></summary>
       ${g.log.slice().reverse().map(l => `<p class="logline"><span class="dim">R${l.r}</span> ${esc(l.text)}</p>`).join("")}</details>` : ""}
+    <div class="panel" style="--c:var(--purple)">
+      <h2>Big screen</h2>
+      <p class="dim" style="margin-bottom:8px">Open this on a TV or laptop. It shows the timer, the news, and the troupe, and nothing secret.</p>
+      <a class="btn small alt" href="${esc(location.origin + location.pathname)}#screen" target="_blank" rel="noopener">Open big screen</a>
+      <code style="display:block;margin-top:8px">${esc(location.origin + location.pathname)}#screen</code>
+    </div>
     <div class="panel" style="--c:var(--pink)">
       <h2>Guest QR code</h2>
       <div class="qr"><div id="qrbox"></div><div>Guests scan this to join.<br><code>${esc(location.origin + location.pathname)}</code></div></div>
@@ -1079,6 +1166,27 @@ async function renderAdmin(force){
   $("#eyeBtn").onclick = () => { showRoles = !showRoles; renderAdmin(true); };
   $("#resetBtn").onclick = () => { if (armed($("#resetBtn"), "Tap again to end")) go(wipe); };
   app.querySelectorAll("button[data-id]").forEach(b => b.onclick = () => go(() => hostToggle(b.dataset.id)));
+  app.querySelectorAll("button[data-left]").forEach(b => b.onclick = () => { if (armed(b, "Tap again")) go(() => host("left", {id:b.dataset.left})); });
+  if ($("#sayBtn")) $("#sayBtn").onclick = () => { const t = $("#sayTx").value.trim(); if (!t) return flash("Write a message first."); go(() => host("announce", {text:t})); };
+  if ($("#pauseBtn")) $("#pauseBtn").onclick = () => go(() => host("pause"));
+  if ($("#peaceBtn")) $("#peaceBtn").onclick = () => { if (armed($("#peaceBtn"), "Tap again to confirm")) go(() => host("peaceful")); };
+  if ($("#undoBtn")) $("#undoBtn").onclick = () => { if (armed($("#undoBtn"), "Tap again to roll back")) go(() => host("undo")); };
+}
+
+function controlsHTML(g){
+  const live = g.status === "live";
+  return `<div class="panel" style="--c:var(--gold)">
+    <h2>Host controls</h2>
+    <div class="label">Message every phone</div>
+    <textarea id="sayTx" rows="2" maxlength="200" placeholder="Everyone to the living room"></textarea>
+    <button class="btn small" id="sayBtn">Send to every phone</button>
+    ${live ? `<div class="row" style="margin-top:12px">
+      <button class="btn small ${g.paused ? "" : "alt"}" id="pauseBtn">${g.paused ? "Resume the game" : "Pause the game"}</button>
+      ${g.peacefulRound === g.round ? `<span class="dim">Tonight is peaceful.</span>` : `<button class="btn small alt" id="peaceBtn">Peaceful night</button>`}
+      ${g.canUndo ? `<button class="btn small ghost" id="undoBtn">Undo last reveal</button>` : ""}
+    </div>
+    <p class="dim" style="margin-top:8px">Peaceful night cancels this round's kills. Undo rolls back the last Close the vote, until the next vote opens.</p>` : ""}
+  </div>`;
 }
 
 function leversHTML(g){
@@ -1127,12 +1235,58 @@ function renderSetup(g){
 }
 
 /* =========================================================
-   ROUTER + SKETCH-MODE CONTROLS
+   BIG SCREEN (public information only)
    ========================================================= */
-function route(){ lastSig = ""; isAdmin() ? renderAdmin(true) : renderPlayer(true); }
-window.addEventListener("hashchange", () => { view = location.hash === "#admin" ? "admin" : "player"; route(); });
+async function renderScreen(force){
+  const g = await Store.load();
+  const sig = "S" + sigOf(lastText);
+  if (!force && sig === lastSig) return;
+  lastSig = sig;
+  document.body.classList.add("screen");
+  const app = $("#app");
+  const url = location.origin + location.pathname;
+  const troupe = g.players.filter(p => !p.spectator && !p.left);
+  const card = p => `<div class="tcard ${p.alive ? "" : "gone"}">${portraitHTML("tp")}<b>${esc(CHARACTERS[p.char].name)}</b><span>${esc(p.name)}</span>${p.role && (!p.alive || g.status === "over" || g.ringRevealed === p.id) ? `<em style="--rc:${ROLES[p.role].color}">${ROLES[p.role].name}</em>` : ""}</div>`;
+  let body = "";
+  if (g.status === "none") body = `<div class="panel" style="--c:var(--purple)"><div class="waiting">The show starts soon.</div></div>`;
+  else if (g.status === "lobby") body = `
+    <div class="screengrid">
+      <div class="panel" style="--c:var(--pink)"><h2>Scan to join the troupe</h2><div id="qrbox" class="qrbig"></div><code>${esc(url)}</code></div>
+      <div class="panel" style="--c:var(--teal)"><h2>The troupe so far (${troupe.length})</h2><div class="tgrid">${troupe.map(card).join("")}</div></div>
+    </div>`;
+  else body = `
+    ${g.status === "over" && g.winners ? `<div class="panel" style="--c:var(--teal)"><h2 class="winner">${esc(g.winners.text)}</h2></div>` : ""}
+    <div class="screengrid">
+      <div>
+        <div class="panel" style="--c:var(--gold)">
+          <h2>${g.status === "over" ? "Final curtain" : `Round ${g.round} &middot; ${g.phase === "vote" ? "VOTING" : "MINGLE"}${isFullMoon(g) ? " &middot; FULL MOON" : ""}`}</h2>
+          ${g.mods && g.mods.double ? `<p class="gold">DOUBLE ELIMINATION TONIGHT</p>` : ""}
+          ${timerHTML(g, true)}
+        </div>
+        <div class="panel feed" style="--c:var(--pink)"><h2>Carnival news</h2>${(g.feed || []).slice(-6).reverse().map(newsLine).join("")}</div>
+      </div>
+      <div class="panel" style="--c:var(--teal)"><h2>The troupe (${troupe.filter(p => p.alive).length} alive)</h2><div class="tgrid">${troupe.map(card).join("")}</div></div>
+    </div>`;
+  app.innerHTML = `
+    <h1>MIDNIGHT CARNIVAL</h1>
+    ${pauseBanner(g)}
+    ${hostBanner(g)}
+    ${body}`;
+  app.querySelectorAll("canvas.tp").forEach((cv,i) => drawPortrait(cv, CHARACTERS[troupe[i].char]));
+  if ($("#qrbox") && window.QRCode) new QRCode($("#qrbox"), {text:url, width:320, height:320, colorDark:"#07040d", colorLight:"#f3dfb4"});
+  tickTimers();
+}
+
+/* =========================================================
+   ROUTER
+   ========================================================= */
+const viewFromHash = () => location.hash === "#admin" ? "admin" : location.hash === "#screen" ? "screen" : "player";
+view = viewFromHash();
+const render = force => view === "admin" ? renderAdmin(force) : view === "screen" ? renderScreen(force) : renderPlayer(force);
+function route(){ lastSig = ""; render(true); }
+window.addEventListener("hashchange", () => { view = viewFromHash(); document.body.classList.toggle("screen", view === "screen"); route(); });
 // Poll every 4 seconds while the page is visible; refresh right away when it comes back
-setInterval(() => { if (!document.hidden) { isAdmin() ? renderAdmin() : renderPlayer(); } }, 4000);
+setInterval(() => { if (!document.hidden) render(); }, 4000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) route(); });
 route();
 

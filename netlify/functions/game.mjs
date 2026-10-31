@@ -90,7 +90,7 @@ const now = () => Date.now();
 const byId = (g,id) => g.players.find(p => p.id === id);
 const castOf = g => g.players.filter(p => !p.spectator);
 const livingCast = g => g.players.filter(p => !p.spectator && p.alive);
-const inCrowd = p => p.spectator || !p.alive;
+const inCrowd = p => (p.spectator || !p.alive) && !p.left;
 const isFullMoon = g => g.round % 2 === 1;
 const charName = (g,id) => { const p = byId(g,id); return p && !p.spectator ? CHARACTERS[p.char].name : "?"; };
 const who = (g,id) => { const p = byId(g,id); return p ? `${charName(g,id)} (${p.name})` : "?"; };
@@ -215,6 +215,8 @@ function deathLine(g, p){
 function act(g, pid, kind, data={}){
   const p = byId(g,pid);
   if (!p || g.status !== "live") return "The game is not running.";
+  if (g.paused) return "The game is paused.";
+  if (p.left) return "You have left the game.";
   const u = use(g,pid), alive = p.alive, voting = g.phase === "vote";
   const target = data.target && byId(g,data.target);
   const targetAlive = target && target.alive && !target.spectator;
@@ -281,7 +283,7 @@ function act(g, pid, kind, data={}){
       log(g, `${who(g,pid)} (Jester) haunted ${who(g,target.id)}.`); break;
     case "medium": {
       if (p.role !== "medium" || !alive || u.medium === g.round) return "You already held a seance this round.";
-      if (!target || target.alive || target.spectator) return "Pick a dead troupe member.";
+      if (!target || target.alive || target.spectator || target.left) return "Pick a dead troupe member.";
       const q = SEANCE_Q[Number(data.q)]; if (!q) return "Pick a question.";
       u.medium = g.round; markUsed(g,pid);
       g.seances.push({id:uid(), from:pid, to:target.id, q, round:g.round, status:"pending"});
@@ -342,7 +344,7 @@ function act(g, pid, kind, data={}){
    ========================================================= */
 function openVote(g){
   if (g.status !== "live" || g.phase === "vote") return;
-  g.phase = "vote"; g.votes = {}; g.crowdVotes = {}; g.act = {kill:{}}; g.mods = {};
+  g.phase = "vote"; g.votes = {}; g.crowdVotes = {}; g.act = {kill:{}}; g.mods = {}; g.undo = null;
   announce(g, `Round ${g.round}: voting is open.${isFullMoon(g) && livingCast(g).some(p => p.role === "werewolf") ? " The moon is full tonight." : ""}`, "news");
 }
 
@@ -397,6 +399,7 @@ function attack(g, targetId, attackers, kind, lines){
 
 function closeVote(g){
   if (g.status !== "live" || g.phase !== "vote") return;
+  const snapshot = JSON.stringify({...g, undo:null});
   const lines = [];
   const tally = voteTally(g);
   const protectedId = g.act.protect || null;
@@ -415,9 +418,16 @@ function closeVote(g){
     }
   } else lines.push(tally.double ? "The vote was too close to call. Nobody was voted out." : "The vote was tied. Nobody was voted out.");
 
-  // 2. The killers
+  // 2. The killers (skipped on a peaceful night)
+  const peaceful = g.peacefulRound === g.round;
   const killers = livingCast(g).filter(p => p.role === "killer");
-  const picks = Object.entries(g.act.kill).filter(([k]) => killers.some(x => x.id === k));
+  const picks = peaceful ? [] : Object.entries(g.act.kill).filter(([k]) => killers.some(x => x.id === k));
+  if (peaceful) {
+    lines.push("The night was peaceful. Nobody was harmed.");
+    killers.forEach(k => msg(g, k.id, "Something stayed your hand tonight. Nobody was harmed.", "bad"));
+    const w = livingCast(g).find(p => p.role === "werewolf");
+    if (w && isFullMoon(g)) msg(g, w.id, "The moon hid behind the clouds. You could not hunt tonight.", "bad");
+  }
   if (picks.length) {
     const counts = {}; picks.forEach(([,t]) => counts[t] = (counts[t]||0) + 1);
     const top = Math.max(...Object.values(counts));
@@ -428,7 +438,7 @@ function closeVote(g){
   }
   // 3. The Werewolf
   const wolf = livingCast(g).find(p => p.role === "werewolf");
-  if (wolf && isFullMoon(g) && g.act.wolf) attack(g, g.act.wolf, [wolf.id], "werewolf", lines);
+  if (!peaceful && wolf && isFullMoon(g) && g.act.wolf) attack(g, g.act.wolf, [wolf.id], "werewolf", lines);
 
   // 4. The Watchman
   const watchman = g.players.find(p => p.role === "watchman" && p.alive);
@@ -444,6 +454,7 @@ function closeVote(g){
   g.lastProtect = protectedId;
   g.requests.filter(r => r.status === "pending" && !(byId(g,r.to) || {}).alive).forEach(r => r.status = "expired");
   g.round++; g.phase = "mingle"; g.votes = {}; g.crowdVotes = {}; g.act = {kill:{}}; g.mods = {};
+  g.undo = snapshot;
   checkWin(g);
 }
 
@@ -577,6 +588,26 @@ function outFrom(ranked, k){
   return ranked.slice(0, k).map(r => r[0]);
 }
 
+// A guest who leaves the party quietly exits. A departing killer passes the role to a random Innocent.
+function leave(g, p){
+  const wasAlive = p.alive;
+  p.left = true; p.alive = false; p.cause = "left";
+  log(g, `${p.spectator ? p.name : who(g, p.id)} left the game.`);
+  if (g.status !== "live" || p.spectator || !wasAlive) return;
+  if (p.role === "killer") {
+    const pool = livingCast(g).filter(x => x.role === "innocent");
+    if (pool.length) {
+      const heir = pool[Math.floor(Math.random() * pool.length)];
+      heir.role = "killer";
+      g.decoys[heir.id] = shuffle(DECOYS).slice(0, 6);
+      msg(g, heir.id, "A killer has slipped away from the carnival. You take their place. You are now a Killer. Hold your role card to see it.", "bad");
+      livingCast(g).filter(x => x.role === "killer" && x.id !== heir.id).forEach(k => msg(g, k.id, `Your partner has left. ${charName(g, heir.id)} has taken their place.`, "info"));
+      log(g, `${who(g, heir.id)} inherited the Killer role.`);
+    }
+  }
+  checkWin(g);
+}
+
 /* =========================================================
    VIEWS: each phone only ever receives its own secrets
    ========================================================= */
@@ -586,7 +617,7 @@ function view(g, pid){
   const out = {status:g.status, round:g.round || 0, phase:g.phase || "mingle", timer:g.timer || null, now:Date.now(),
     settings:{castCap:g.settings.castCap},
     feed:(g.feed || []).slice(-30), ringRevealed:g.ringRevealed || null, winners:g.winners || null,
-    stubsOut:!!g.stubsOut, mods:g.mods || {}, players:[], inbox:{}, uses:{}, decoys:{}, loan:{}, stubs:{}, votes:{}, crowdVotes:{},
+    stubsOut:!!g.stubsOut, mods:g.mods || {}, hostMsg:g.hostMsg || null, paused:!!g.paused, crowdTally:null, players:[], inbox:{}, uses:{}, decoys:{}, loan:{}, stubs:{}, votes:{}, crowdVotes:{},
     requests:[], seances:[], act:{kill:{}}, lastProtect:null, myChar:null};
   const known = new Set();
   if (me) {
@@ -595,12 +626,13 @@ function view(g, pid){
     if (me.role === "sweetheart") castOf(g).filter(p => p.role === "sweetheart").forEach(p => known.add(p.id));
   }
   out.players = (g.players || []).map(p => {
-    const pub = {id:p.id, name:p.name, char:p.char, alive:p.alive, spectator:!!p.spectator};
+    const pub = {id:p.id, name:p.name, char:p.char, alive:p.alive, spectator:!!p.spectator, left:!!p.left};
     if (over || known.has(p.id) || (!p.alive && revealsRole(p)) || g.ringRevealed === p.id) pub.role = p.role;
     if (p.id === pid) { pub.formerRole = p.formerRole; }
     return pub;
   });
   if (!me || g.status === "none") return out;
+  if (inCrowd(me) && g.status === "live" && g.phase === "vote") out.crowdTally = crowdTally(g).ranked;
   out.me = pid;
   if (!me.spectator) out.myChar = CHARACTERS[me.char];
   out.inbox[pid] = (g.inbox[pid] || []);
@@ -623,6 +655,7 @@ function view(g, pid){
 function adminView(g){
   const out = JSON.parse(JSON.stringify(g));
   out.players.forEach(p => delete p.token);
+  out.canUndo = !!g.undo; delete out.undo;
   out.now = Date.now();
   if (g.status === "live") { out.tally = voteTally(g); }
   return out;
@@ -658,6 +691,39 @@ function admin(g, cmd, args={}){
       return {g};
     }
     case "wipe": { const b = blankGame(); b.settings = g.settings; return {g:b}; }
+    case "announce": {
+      const text = String(args.text || "").trim().slice(0, 200);
+      if (!text) return {error:"Write a message first."};
+      if (!g.feed) return {error:"Open the lobby first."};
+      g.hostMsg = {text, at:Date.now()}; announce(g, text, "host"); return {g};
+    }
+    case "pause": {
+      if (g.status !== "live") return {error:"Start the game first."};
+      g.paused = !g.paused;
+      if (g.timer) {
+        if (g.paused && g.timer.endsAt) { g.timer.remaining = Math.max(0, g.timer.endsAt - Date.now()); g.timer.endsAt = null; }
+        else if (!g.paused && g.timer.remaining !== undefined) { g.timer.endsAt = Date.now() + g.timer.remaining; delete g.timer.remaining; }
+      }
+      announce(g, g.paused ? "The game is paused." : "The game is back on.", "news");
+      return {g};
+    }
+    case "peaceful": {
+      if (g.status !== "live") return {error:"Start the game first."};
+      if (g.peacefulRound === g.round) return {error:"Tonight is already peaceful."};
+      g.peacefulRound = g.round; log(g, "Host made this round peaceful."); return {g};
+    }
+    case "undo": {
+      if (!g.undo) return {error:"Nothing to undo. Undo only works until the next vote opens."};
+      const prev = JSON.parse(g.undo); prev.undo = null;
+      announce(prev, "The host rolled back the last reveal. Voting is open again.", "news");
+      log(prev, "Host undid the last reveal.");
+      return {g:prev};
+    }
+    case "left": {
+      const p = byId(g, args.id); if (!p) return {error:"Player not found."};
+      if (p.left) return {error:"They already left."};
+      leave(g, p); return {g};
+    }
     // Test helpers: bots fill seats and act at random so the host can rehearse a round
     case "bots": {
       if (g.status !== "lobby") return {error:"Open the lobby first."};
