@@ -32,10 +32,3 @@ Netlify Blobs, where the game is saved, turns on automatically. There is nothing
 
 **Guests who arrive after the deal** join as spectators and vote with the crowd.
 
-## Before the party
-
-Do a dry run with two or three phones: open the lobby, join, deal, vote once, then tap **End game** to reset.
-
-## Free plan usage
-
-Phones check for updates every 4 seconds while the page is open, and pause when the screen is off. A two-hour game with 35 phones uses roughly 60,000 function calls, within Netlify's free monthly allowance.
