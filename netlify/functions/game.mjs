@@ -14,7 +14,7 @@ const MSG_MAX = 140;
    ========================================================= */
 const ROLES = {
   killer:       {name:"Killer",        team:"killers",  color:"#d6333f", icon:"knife",
-                 text:"You killed Silas Baylor. You can see the other killers. Each vote, agree on a victim. You may lie about your secret."},
+                 text:"You killed Silas Baylor. If you have partners, you can see them. Each vote, agree on a victim. You may lie about your secret."},
   stooge:       {name:"Stooge",        team:"killers",  color:"#b3262f", icon:"stooge",
                  text:"You know who the killers are. They do not know you. You win if they win. You may lie about your secret."},
   werewolf:     {name:"Werewolf",      team:"alone",    color:"#9aa6b2", icon:"wolf",
@@ -199,7 +199,7 @@ function die(g, id, cause){
 const revealsRole = p => p.role === "killer" || p.role === "werewolf";
 // Every death says how it happened
 const CAUSE = {
-  vote:"was voted out by the troupe.", killers:"was killed by the killers.", werewolf:"was mauled by the Werewolf.",
+  vote:"was voted out by the troupe.", killers:"was murdered.", werewolf:"was mauled by the Werewolf.",
   protecting:"died protecting someone. They were the Strongman.", strongman:"was taken down by the Strongman.",
   shot:"was shot by the Sharpshooter.", misfire:"shot the wrong person and died. They were the Sharpshooter.",
   heartbreak:"died of a broken heart.", host:"was removed by the host."
@@ -502,16 +502,16 @@ const TRAITS = {
   "Tobias Wick":["pride","theft"], "Juniper Hale":["pride","identity"]
 };
 const MOTIVE_CLUE = {
-  money:"One of the killers was in it for the money.", job:"One of the killers was about to lose their place in this carnival.",
-  pride:"One of the killers had their pride wounded.", safety:"One of the killers feared for their safety.",
-  heart:"One of the killers lost something they loved.", exposure:"One of the killers was about to be exposed.",
-  betrayal:"One of the killers was betrayed by Silas."
+  money:"A killer was in it for the money.", job:"A killer was about to lose their place in this carnival.",
+  pride:"A killer had their pride wounded.", safety:"A killer feared for their safety.",
+  heart:"A killer lost something they loved.", exposure:"A killer was about to be exposed.",
+  betrayal:"A killer was betrayed by Silas."
 };
 const SECRET_CLUE = {
-  fake:"One of the killers is faking something.", theft:"One of the killers is a thief.",
-  weakness:"One of the killers is hiding a weakness.", identity:"One of the killers is not who they say they are.",
-  heart:"One of the killers is hiding a matter of the heart.", disloyal:"One of the killers is working against the carnival.",
-  hidden:"One of the killers is hiding how they really live."
+  fake:"A killer is faking something.", theft:"A killer is a thief.",
+  weakness:"A killer is hiding a weakness.", identity:"A killer is not who they say they are.",
+  heart:"A killer is hiding a matter of the heart.", disloyal:"A killer is working against the carnival.",
+  hidden:"A killer is hiding how they really live."
 };
 
 function clueDrop(g, kind){
@@ -584,7 +584,7 @@ function view(g, pid){
   const me = byId(g, pid);
   const over = g.status === "over";
   const out = {status:g.status, round:g.round || 0, phase:g.phase || "mingle", timer:g.timer || null, now:Date.now(),
-    settings:{killers:g.settings.killers, castCap:g.settings.castCap},
+    settings:{castCap:g.settings.castCap},
     feed:(g.feed || []).slice(-30), ringRevealed:g.ringRevealed || null, winners:g.winners || null,
     stubsOut:!!g.stubsOut, mods:g.mods || {}, players:[], inbox:{}, uses:{}, decoys:{}, loan:{}, stubs:{}, votes:{}, crowdVotes:{},
     requests:[], seances:[], act:{kill:{}}, lastProtect:null, myChar:null};
