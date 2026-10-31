@@ -545,6 +545,37 @@ function admin(g, cmd, args={}){
       return {g};
     }
     case "wipe": { const b = blankGame(); b.settings = g.settings; return {g:b}; }
+    // Test helpers: bots fill seats and act at random so the host can rehearse a round
+    case "bots": {
+      if (g.status !== "lobby") return {error:"Open the lobby first."};
+      const n = Math.max(1, Math.min(MAX_PLAYERS, Number(args.n) || 5));
+      for (let i = 0; i < n; i++) {
+        const r = join(g, "Bot " + (g.players.filter(p => p.bot).length + 1));
+        if (r.player) r.player.bot = true;
+      }
+      return {g};
+    }
+    case "botvote": {
+      if (g.status !== "live" || g.phase !== "vote") return {error:"Open the vote first."};
+      const pick = list => list[Math.floor(Math.random() * list.length)];
+      for (const b of g.players.filter(p => p.bot)) {
+        const others = livingCast(g).filter(p => p.id !== b.id);
+        if (!others.length) continue;
+        if (inCrowd(b)) { act(g, b.id, "crowdvote", {target:pick(livingCast(g)).id}); continue; }
+        act(g, b.id, "vote", {target:pick(others).id});
+        if (b.role === "killer") { const prey = others.filter(p => p.role !== "killer"); if (prey.length) act(g, b.id, "kill", {target:pick(prey).id}); }
+        if (b.role === "werewolf" && isFullMoon(g)) act(g, b.id, "wolf", {target:pick(others).id});
+        if (b.role === "strongman") { const ok = others.filter(p => p.id !== g.lastProtect); if (ok.length) act(g, b.id, "protect", {target:pick(ok).id}); }
+      }
+      log(g, "Bots voted.");
+      return {g};
+    }
+    case "clearbots": {
+      if (g.status !== "lobby") return {error:"Bots can only be removed in the lobby."};
+      g.players = g.players.filter(p => !p.bot);
+      const cast = castOf(g); cast.forEach((p,i) => p.char = g.order[i]);
+      return {g};
+    }
     default: return {error:"Unknown command."};
   }
 }

@@ -973,6 +973,12 @@ async function renderAdmin(force){
         <span class="dim">Cast size</span>
         <button class="btn small alt" data-cap="-1">-1</button><b>${g.settings.castCap}</b><button class="btn small alt" data-cap="1">+1</button>
       </div>
+      <div class="row" style="margin-bottom:12px">
+        <button class="btn small alt" data-bots="1">+1 bot</button>
+        <button class="btn small alt" data-bots="5">+5 bots</button>
+        <button class="btn small alt" data-bots="${Math.max(1, g.settings.castCap - cast.length)}">Fill with bots</button>
+        ${g.players.some(p => p.bot) ? `<button class="btn small ghost" id="clearBots">Remove bots</button>` : ""}
+      </div>
       <button class="btn" id="dealBtn" ${cast.length < 4 ? "disabled" : ""}>Deal roles and start</button>
       ${cast.length < 4 ? `<p class="dim" style="margin-top:6px">Need at least 4 players.</p>` : ""}
     </div>`;
@@ -992,7 +998,7 @@ async function renderAdmin(force){
              g.act.brace ? `Daredevil braced` : "",
              g.act.heckle ? `${esc(charName(g,g.act.heckle))} heckled` : "",
              g.act.hypno ? `${esc(charName(g,g.act.hypno.who))} hypnotized` : ""].filter(Boolean).join(", ") || "none"}</p>
-           <button class="btn" id="closeBtn">Close the vote and reveal</button>`}
+           <div class="row">${g.players.some(p => p.bot) ? `<button class="btn alt" id="botVoteBtn">Bots vote</button>` : ""}<button class="btn" id="closeBtn">Close the vote and reveal</button></div>`}
     </div>`;
   }
   const banner = g.status === "over" && g.winners ? `<div class="panel" style="--c:var(--teal)"><h2>${esc(g.winners.text)}</h2><p>Winners: ${g.winners.ids.map(id => esc(who(g,id))).join(", ") || "nobody"}</p></div>` : "";
@@ -1035,6 +1041,9 @@ async function renderAdmin(force){
   if (window.QRCode) new QRCode($("#qrbox"), {text: location.origin + location.pathname, width:160, height:160, colorDark:"#07040d", colorLight:"#f3dfb4"});
   const go = async fn => { await fn(); renderAdmin(true); };
   if ($("#dealBtn")) $("#dealBtn").onclick = () => go(deal);
+  app.querySelectorAll("[data-bots]").forEach(b => b.onclick = () => go(() => host("bots", {n:Number(b.dataset.bots)})));
+  if ($("#clearBots")) $("#clearBots").onclick = () => go(() => host("clearbots"));
+  if ($("#botVoteBtn")) $("#botVoteBtn").onclick = () => go(() => host("botvote"));
   app.querySelectorAll("[data-tm]").forEach(b => b.onclick = () => go(() => setTimer(Number(b.dataset.tm))));
   if ($("#openBtn")) $("#openBtn").onclick = () => go(openVote);
   if ($("#closeBtn")) $("#closeBtn").onclick = () => go(closeVote);
