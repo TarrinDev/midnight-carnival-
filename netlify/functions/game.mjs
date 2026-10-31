@@ -197,9 +197,16 @@ function die(g, id, cause){
   return out;
 }
 const revealsRole = p => p.role === "killer" || p.role === "werewolf";
+// Every death says how it happened
+const CAUSE = {
+  vote:"was voted out by the troupe.", killers:"was killed by the killers.", werewolf:"was mauled by the Werewolf.",
+  protecting:"died protecting someone. They were the Strongman.", strongman:"was taken down by the Strongman.",
+  shot:"was shot by the Sharpshooter.", misfire:"shot the wrong person and died. They were the Sharpshooter.",
+  heartbreak:"died of a broken heart.", host:"was removed by the host."
+};
 function deathLine(g, p){
-  const base = `${CHARACTERS[p.char].name} (${p.name})`;
-  return revealsRole(p) ? `${base} is dead. They were the ${ROLES[p.role].name}!` : `${base} is dead.`;
+  const base = `${CHARACTERS[p.char].name} (${p.name}) ${CAUSE[p.cause] || "is dead."}`;
+  return revealsRole(p) ? `${base} They were the ${ROLES[p.role].name}!` : base;
 }
 
 /* =========================================================
@@ -321,7 +328,7 @@ function act(g, pid, kind, data={}){
         announce(g, `A shot rings out. ${dead.map(d => deathLine(g,d)).join(" ")}`, "death");
         if (!["killer","stooge","werewolf"].includes(target.role)) {
           const me = die(g, pid, "misfire");
-          announce(g, `The Sharpshooter shot the wrong person. ${me.map(d => deathLine(g,d)).join(" ")}`, "death");
+          announce(g, me.map(d => deathLine(g,d)).join(" "), "death");
         }
         checkWin(g); }
       break;
@@ -404,7 +411,7 @@ function closeVote(g){
       const p = byId(g,id); if (!p || !p.alive) continue;
       if (p.role === "jester") { g.solo.push({id:p.id, role:"jester"}); msg(g, p.id, "They voted you out. You win.", "good"); log(g, `${who(g,p.id)} (Jester) wins.`); }
       const dead = die(g, id, "vote");
-      lines.push(`The troupe voted out ${dead.map(d => deathLine(g,d)).join(" ")}`);
+      lines.push(dead.map(d => deathLine(g,d)).join(" "));
     }
   } else lines.push(tally.double ? "The vote was too close to call. Nobody was voted out." : "The vote was tied. Nobody was voted out.");
 

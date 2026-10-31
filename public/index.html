@@ -99,6 +99,14 @@ input:focus{box-shadow:inset 4px 4px 0 var(--cream-dk),0 0 0 4px var(--gold)}
 .ticket summary::-webkit-details-marker{display:none}
 .ticket summary::before{content:"\25B6  "}
 .ticket details[open] summary::before{content:"\25BC  "}
+.ticket > summary.tickethead{display:block;color:inherit}
+.ticket > summary.tickethead::before{content:none}
+.ticket > summary.tickethead .who{margin-bottom:0}
+.ticket[open] > summary.tickethead .who{margin-bottom:6px}
+.ticket .fold::after{content:"\25BC";margin-left:6px}
+.ticket[open] .fold::after{content:"\25B2"}
+.ticket:not([open]) .stub{margin-bottom:10px}
+.ticket .knife{vertical-align:-4px}
 
 /* ---------- Role card (hold to reveal) ---------- */
 .role{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;
@@ -648,14 +656,16 @@ async function renderPlayer(force){
     ${pending ? requestHTML(g, p, pending) : ""}
     ${g.status === "live" ? promptsHTML(g, p) : ""}
     ${g.mods && g.mods.spotlight && g.mods.spotlight.id === p.id && g.mods.spotlight.status === "pending" ? `<div class="panel req" style="--c:var(--gold)"><h2>YOU ARE IN THE SPOTLIGHT</h2><p>Stand up and read your secret out loud, or take an extra vote against you this round.</p></div>` : ""}
-    <article class="ticket ${justJoined ? "deal" : ""}">
-      <div class="stub"><span>ADMIT ONE</span><span>No. ${String(p.char+1).padStart(3,"0")}</span></div>
-      <div class="who">${portraitHTML("portrait")}<div><h3>${esc(c.name)}</h3><div class="job">${esc(c.job)}</div></div></div>
+    <details class="ticket ${justJoined ? "deal" : ""}" data-keep="card" data-default="open">
+      <summary class="tickethead">
+        <div class="stub"><span>ADMIT ONE</span><span>No. ${String(p.char+1).padStart(3,"0")} <span class="fold"></span></span></div>
+        <div class="who">${portraitHTML("portrait")}<div><h3>${esc(c.name)}</h3><div class="job">${esc(c.job)}</div></div></div>
+      </summary>
       <div class="label">Bio</div><p>${esc(c.bio)}</p>
-      <div class="label">Motive ${KNIFE}</div><p>${esc(c.motive)}</p>
-      <details><summary>Secret</summary><p style="margin-top:6px">${esc(c.secret)}</p></details>
-      <details><summary>Rumor</summary><p style="margin-top:6px">${esc(c.rumor)}</p></details>
-    </article>
+      <details data-keep="motive"><summary>Motive ${KNIFE}</summary><p style="margin-top:6px">${esc(c.motive)}</p></details>
+      <details data-keep="secret"><summary>Secret</summary><p style="margin-top:6px">${esc(c.secret)}</p></details>
+      <details data-keep="rumor"><summary>Rumor</summary><p style="margin-top:6px">${esc(c.rumor)}</p></details>
+    </details>
     ${role ? `
       <div class="role" id="role" style="--rc:${role.color}" aria-label="Hold to reveal your role">
         <div class="back"><b>?</b>HOLD TO REVEAL<br>YOUR ROLE</div>
@@ -681,6 +691,7 @@ async function renderPlayer(force){
   wireRoleCard();
   wirePicks(g, p, "vote");
   wirePowers(g, p);
+  wireKeep();
   wireRequest(p);
   wirePrompts();
   wireInbox();
@@ -862,6 +873,14 @@ function powersHTML(g, p){
       body = `<p class="dim">No powers. Keep your eyes open.</p>`;
   }
   return `<details class="panel powers" style="--c:${ROLES[p.role].color}"><summary><h2 style="display:inline">Your powers</h2></summary><div style="margin-top:10px">${body}</div></details>`;
+}
+// Remember which folds a player left open, so polling never snaps them shut
+function wireKeep(){
+  $("#app").querySelectorAll("details[data-keep]").forEach(d => {
+    const k = "mc-open-" + d.dataset.keep, saved = Safe.get(k);
+    d.open = saved === null ? d.dataset.default === "open" : saved === "1";
+    d.addEventListener("toggle", () => Safe.set(k, d.open ? "1" : "0"));
+  });
 }
 function wirePowers(g, p){
   const box = $("#app").querySelector(".powers"); if (!box) return;
