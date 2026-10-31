@@ -740,7 +740,7 @@ const CHARACTERS = [
    ========================================================= */
 const STORE_NAME = "midnight-carnival";
 const KEY = "game";
-const adminPin = () => (globalThis.Netlify?.env?.get?.("ADMIN_PIN")) || process.env.ADMIN_PIN || "5112";
+const adminPin = () => (globalThis.Netlify?.env?.get?.("ADMIN_PIN")) || process.env.ADMIN_PIN || "";
 const json = (body, status=200) => new Response(JSON.stringify(body), {status, headers:{"content-type":"application/json", "cache-control":"no-store"}});
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -769,6 +769,7 @@ export default async (req) => {
   const store = getStore({name:STORE_NAME, consistency:"strong"});
   const url = new URL(req.url);
   const isAdmin = req.headers.get("x-admin-pin") !== null;
+  if (isAdmin && !adminPin()) return json({error:"Admin PIN is not configured. Set the ADMIN_PIN environment variable."}, 500);
   if (isAdmin && req.headers.get("x-admin-pin") !== adminPin()) return json({error:"Wrong PIN."}, 401);
 
   if (req.method === "GET") {
