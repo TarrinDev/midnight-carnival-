@@ -335,7 +335,7 @@ function act(g, pid, kind, data={}){
    ========================================================= */
 function openVote(g){
   if (g.status !== "live" || g.phase === "vote") return;
-  g.phase = "vote"; g.votes = {}; g.crowdVotes = {}; g.act = {kill:{}};
+  g.phase = "vote"; g.votes = {}; g.crowdVotes = {}; g.act = {kill:{}}; g.mods = {};
   announce(g, `Round ${g.round}: voting is open.${isFullMoon(g) && livingCast(g).some(p => p.role === "werewolf") ? " The moon is full tonight." : ""}`, "news");
 }
 
@@ -360,9 +360,11 @@ function voteTally(g){
   }
   const c = crowdTally(g);
   if (c.pick) t[c.pick] = (t[c.pick] || 0) + 1;
+  const mods = g.mods || {};
+  if (mods.spotlight && mods.spotlight.status === "refused" && livingCast(g).some(p => p.id === mods.spotlight.id)) t[mods.spotlight.id] = (t[mods.spotlight.id] || 0) + 1;
   const ranked = Object.entries(t).sort((a,b) => b[1] - a[1]);
-  const out = ranked.length && (ranked.length === 1 || ranked[0][1] > ranked[1][1]) ? ranked[0][0] : null;
-  return {ranked, out, crowd:c};
+  const outs = outFrom(ranked, mods.double ? 2 : 1);
+  return {ranked, out:outs[0] || null, outs, double:!!mods.double, crowd:c};
 }
 
 function attack(g, targetId, attackers, kind, lines){
@@ -396,13 +398,15 @@ function closeVote(g){
   if (g.act.heckle) msg(g, g.act.heckle, "You were heckled. Your vote did not count this round.", "bad");
   if (g.act.hypno) msg(g, g.act.hypno.who, `You were hypnotized. Your vote went to ${charName(g,g.act.hypno.to)}.`, "bad");
 
-  // 1. The vote
-  if (tally.out) {
-    const p = byId(g,tally.out);
-    if (p.role === "jester") { g.solo.push({id:p.id, role:"jester"}); msg(g, p.id, "They voted you out. You win.", "good"); log(g, `${who(g,p.id)} (Jester) wins.`); }
-    const dead = die(g, tally.out, "vote");
-    lines.push(`The troupe voted out ${dead.map(d => deathLine(g,d)).join(" ")}`);
-  } else lines.push("The vote was tied. Nobody was voted out.");
+  // 1. The vote (one player, or two under double elimination)
+  if (tally.outs.length) {
+    for (const id of tally.outs) {
+      const p = byId(g,id); if (!p || !p.alive) continue;
+      if (p.role === "jester") { g.solo.push({id:p.id, role:"jester"}); msg(g, p.id, "They voted you out. You win.", "good"); log(g, `${who(g,p.id)} (Jester) wins.`); }
+      const dead = die(g, id, "vote");
+      lines.push(`The troupe voted out ${dead.map(d => deathLine(g,d)).join(" ")}`);
+    }
+  } else lines.push(tally.double ? "The vote was too close to call. Nobody was voted out." : "The vote was tied. Nobody was voted out.");
 
   // 2. The killers
   const killers = livingCast(g).filter(p => p.role === "killer");
@@ -432,7 +436,7 @@ function closeVote(g){
   announce(g, `Round ${g.round} results: ${lines.join(" ")}`, "death");
   g.lastProtect = protectedId;
   g.requests.filter(r => r.status === "pending" && !(byId(g,r.to) || {}).alive).forEach(r => r.status = "expired");
-  g.round++; g.phase = "mingle"; g.votes = {}; g.crowdVotes = {}; g.act = {kill:{}};
+  g.round++; g.phase = "mingle"; g.votes = {}; g.crowdVotes = {}; g.act = {kill:{}}; g.mods = {};
   checkWin(g);
 }
 
@@ -469,6 +473,103 @@ function hostToggle(g, id){
   else { p.alive = true; delete p.cause; log(g, `Host brought back ${who(g,id)}.`); }
 }
 
+
+/* =========================================================
+   HOST LEVERS
+   Every character has a motive type and a secret type. Clue
+   drops always describe a living killer, so sharing your own
+   card becomes a way to clear yourself.
+   ========================================================= */
+const TRAITS = {
+  "Madame Zora":["job","fake"], "Ollie Pratt":["pride","weakness"], "Vera Lux":["safety","identity"],
+  "Dr. Ignatius Thistle":["exposure","fake"], "Mabel Finch":["exposure","theft"], "Bruno Kask":["heart","theft"],
+  "Pip Malloy":["money","heart"], "Lottie Grimm":["heart","fake"], "Hester Moss":["money","disloyal"],
+  "Gus Ember":["safety","weakness"], "Delphine Rook":["betrayal","weakness"], "Marcel Fenn":["pride","hidden"],
+  "Ingrid Vos":["money","hidden"], "Cecil Drabb":["exposure","fake"], "Rosalind Tate":["money","identity"],
+  "Jasper Quill":["betrayal","fake"], "Nell Bramble":["heart","disloyal"], "Theo Varga":["pride","theft"],
+  "Penny Thorne":["job","disloyal"], "The Great Augustin":["betrayal","fake"], "Wren Saltz":["pride","disloyal"],
+  "Barnaby Hollis":["safety","theft"], "Flora Dunmore":["heart","fake"], "Otto Grieve":["money","identity"],
+  "Marisol Vane":["safety","heart"], "Ezra Coil":["money","weakness"], "Imogen Pell":["money","theft"],
+  "Horace Bell":["pride","fake"], "Clementine Ash":["heart","fake"], "Wally Dunn":["safety","fake"],
+  "Opal Fairweather":["job","disloyal"], "Felix Marrow":["job","hidden"], "Agnes Pike":["money","fake"],
+  "Tobias Wick":["pride","theft"], "Juniper Hale":["pride","identity"]
+};
+const MOTIVE_CLUE = {
+  money:"One of the killers was in it for the money.", job:"One of the killers was about to lose their place in this carnival.",
+  pride:"One of the killers had their pride wounded.", safety:"One of the killers feared for their safety.",
+  heart:"One of the killers lost something they loved.", exposure:"One of the killers was about to be exposed.",
+  betrayal:"One of the killers was betrayed by Silas."
+};
+const SECRET_CLUE = {
+  fake:"One of the killers is faking something.", theft:"One of the killers is a thief.",
+  weakness:"One of the killers is hiding a weakness.", identity:"One of the killers is not who they say they are.",
+  heart:"One of the killers is hiding a matter of the heart.", disloyal:"One of the killers is working against the carnival.",
+  hidden:"One of the killers is hiding how they really live."
+};
+
+function clueDrop(g, kind){
+  const killers = livingCast(g).filter(p => p.role === "killer");
+  if (!killers.length) return "No killers are left alive.";
+  const used = g.clues || (g.clues = []);
+  const options = [];
+  killers.forEach(k => {
+    const t = TRAITS[CHARACTERS[k.char].name]; if (!t) return;
+    const text = kind === "motive" ? MOTIVE_CLUE[t[0]] : SECRET_CLUE[t[1]];
+    if (text && !used.includes(text)) options.push({text, k});
+  });
+  if (!options.length) return `Every ${kind} clue about the living killers is already out.`;
+  const pick = options[Math.floor(Math.random() * options.length)];
+  used.push(pick.text);
+  announce(g, pick.text, "clue");
+  log(g, `Clue drop (${kind}) about ${who(g, pick.k.id)}: ${pick.text}`);
+}
+function leak(g){
+  const leaked = g.leaked || (g.leaked = []);
+  const options = livingCast(g).filter(p => !leaked.includes(p.id));
+  if (!options.length) return "Every living secret has already leaked.";
+  const p = options[Math.floor(Math.random() * options.length)];
+  leaked.push(p.id);
+  announce(g, `"${CHARACTERS[p.char].secret}"`, "leak");
+  log(g, `Anonymous leak: ${who(g, p.id)}'s secret.`);
+}
+function spotlight(g){
+  if (g.phase !== "vote") return "The spotlight only works during the vote.";
+  if (g.mods.spotlight && g.mods.spotlight.status === "pending") return "Someone is already in the spotlight.";
+  const been = g.spotlit || (g.spotlit = []);
+  let options = livingCast(g).filter(p => !been.includes(p.id));
+  if (!options.length) { g.spotlit = []; options = livingCast(g); }
+  const p = options[Math.floor(Math.random() * options.length)];
+  g.spotlit.push(p.id);
+  g.mods.spotlight = {id:p.id, status:"pending"};
+  announce(g, `SPOTLIGHT: ${who(g, p.id)}. Read your secret out loud, or take an extra vote against you.`, "clue");
+  msg(g, p.id, "You are in the spotlight. Stand up and read your secret out loud, or take an extra vote against you this round.", "bad");
+  log(g, `Spotlight on ${who(g, p.id)}.`);
+}
+function spotlightResult(g, result){
+  const s = g.mods.spotlight;
+  if (!s || s.status !== "pending") return "Nobody is in the spotlight.";
+  s.status = result === "refused" ? "refused" : "told";
+  announce(g, s.status === "refused" ? `${who(g, s.id)} refused the spotlight. They take an extra vote.` : `${who(g, s.id)} told their secret.`, "news");
+}
+function doubleElim(g){
+  if (g.phase !== "vote") return "Double elimination is set during the vote.";
+  if (g.mods.double) return "Double elimination is already on.";
+  g.mods.double = true;
+  announce(g, "DOUBLE ELIMINATION: the top two vote-getters both go tonight.", "clue");
+  log(g, "Double elimination switched on.");
+}
+// Who goes out: the top k by votes, skipping anyone tied at the cutoff
+function outFrom(ranked, k){
+  if (!ranked.length) return [];
+  if (ranked.length <= k) {
+    if (k === 1 || ranked.length === 1) return ranked.length === 1 || ranked[0][1] > (ranked[1] || [0,0])[1] ? [ranked[0][0]] : [];
+    return ranked.map(r => r[0]);
+  }
+  const cut = ranked[k-1][1];
+  if (ranked[k][1] === cut) return ranked.filter(r => r[1] > cut).map(r => r[0]);
+  return ranked.slice(0, k).map(r => r[0]);
+}
+
 /* =========================================================
    VIEWS: each phone only ever receives its own secrets
    ========================================================= */
@@ -478,7 +579,7 @@ function view(g, pid){
   const out = {status:g.status, round:g.round || 0, phase:g.phase || "mingle", timer:g.timer || null, now:Date.now(),
     settings:{killers:g.settings.killers, castCap:g.settings.castCap},
     feed:(g.feed || []).slice(-30), ringRevealed:g.ringRevealed || null, winners:g.winners || null,
-    stubsOut:!!g.stubsOut, players:[], inbox:{}, uses:{}, decoys:{}, loan:{}, stubs:{}, votes:{}, crowdVotes:{},
+    stubsOut:!!g.stubsOut, mods:g.mods || {}, players:[], inbox:{}, uses:{}, decoys:{}, loan:{}, stubs:{}, votes:{}, crowdVotes:{},
     requests:[], seances:[], act:{kill:{}}, lastProtect:null, myChar:null};
   const known = new Set();
   if (me) {
@@ -539,6 +640,11 @@ function admin(g, cmd, args={}){
     case "open": openVote(g); return {g};
     case "close": closeVote(g); return {g};
     case "toggle": hostToggle(g, args.id); return {g};
+    case "clue": { if (g.status !== "live") return {error:"Start the game first."}; const e = clueDrop(g, args.kind === "secret" ? "secret" : "motive"); return e ? {error:e} : {g}; }
+    case "leak": { if (g.status !== "live") return {error:"Start the game first."}; const e = leak(g); return e ? {error:e} : {g}; }
+    case "spotlight": { if (g.status !== "live") return {error:"Start the game first."}; g.mods = g.mods || {}; const e = spotlight(g); return e ? {error:e} : {g}; }
+    case "spotlightResult": { g.mods = g.mods || {}; const e = spotlightResult(g, args.result); return e ? {error:e} : {g}; }
+    case "double": { if (g.status !== "live") return {error:"Start the game first."}; g.mods = g.mods || {}; const e = doubleElim(g); return e ? {error:e} : {g}; }
     case "timer": {
       const secs = Number(args.seconds) || 0;
       g.timer = secs > 0 ? {endsAt:Date.now() + secs*1000, seconds:secs} : null;

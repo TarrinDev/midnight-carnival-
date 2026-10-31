@@ -199,7 +199,9 @@ select:focus,textarea:focus{box-shadow:inset 4px 4px 0 var(--cream-dk),0 0 0 4px
 #app > .chip{display:table}
 .feed .news,.inbox .news{padding:8px 0;border-bottom:2px dashed #2c1b4a;font-size:22px}
 .feed .news:last-child,.inbox .news:last-child{border-bottom:none}
-.news.tip b{color:var(--gold);font-weight:normal}
+.news.tip b,.news.leak b,.news.clue b{color:var(--gold);font-weight:normal}
+.news.clue{color:var(--gold)}
+.news.leak{color:var(--pink)}
 .news.death{color:#ffb3b8}
 .news.good{color:var(--teal)}
 .news.bad{color:#ffb3b8}
@@ -553,7 +555,7 @@ function feedHTML(g, limit=4){
   const items = g.feed.slice(-limit).reverse();
   if (!items.length) return "";
   return `<div class="panel feed" style="--c:var(--pink)"><h2>Carnival news</h2>${items.map(f => `
-    <div class="news ${f.kind}">${f.kind === "tip" ? `<b>ANONYMOUS TIP:</b> ` : ""}${esc(f.text)}</div>`).join("")}</div>`;
+    <div class="news ${f.kind}">${f.kind === "tip" ? `<b>ANONYMOUS TIP:</b> ` : f.kind === "leak" ? `<b>LEAKED SECRET:</b> ` : f.kind === "clue" ? `<b>CLUE:</b> ` : ""}${esc(f.text)}</div>`).join("")}</div>`;
 }
 function inboxHTML(g, pid){
   const items = (g.inbox[pid] || []).slice().reverse();
@@ -579,7 +581,7 @@ function tickTimers(){
 setInterval(tickTimers, 500);
 function phaseChip(g){
   if (g.status !== "live") return "";
-  return `<div class="chip ${g.phase}">Round ${g.round} &middot; ${g.phase === "vote" ? "VOTING" : "MINGLE"}${isFullMoon(g) ? " &middot; FULL MOON" : ""}</div>${timerHTML(g)}`;
+  return `<div class="chip ${g.phase}">Round ${g.round} &middot; ${g.phase === "vote" ? "VOTING" : "MINGLE"}${isFullMoon(g) ? " &middot; FULL MOON" : ""}${g.mods && g.mods.double ? " &middot; DOUBLE ELIMINATION" : ""}</div>${timerHTML(g)}`;
 }
 
 /* =========================================================
@@ -645,6 +647,7 @@ async function renderPlayer(force){
     <p class="sub" style="margin-top:0">Welcome, ${esc(p.name)}. Keep this screen to yourself.</p>
     ${pending ? requestHTML(g, p, pending) : ""}
     ${g.status === "live" ? promptsHTML(g, p) : ""}
+    ${g.mods && g.mods.spotlight && g.mods.spotlight.id === p.id && g.mods.spotlight.status === "pending" ? `<div class="panel req" style="--c:var(--gold)"><h2>YOU ARE IN THE SPOTLIGHT</h2><p>Stand up and read your secret out loud, or take an extra vote against you this round.</p></div>` : ""}
     <article class="ticket ${justJoined ? "deal" : ""}">
       <div class="stub"><span>ADMIT ONE</span><span>No. ${String(p.char+1).padStart(3,"0")}</span></div>
       <div class="who">${portraitHTML("portrait")}<div><h3>${esc(c.name)}</h3><div class="job">${esc(c.job)}</div></div></div>
@@ -1020,6 +1023,7 @@ async function renderAdmin(force){
       ${timerHTML(g, true) || `<p class="dim">No timer running. Phones show it when you start one.</p>`}
       <div class="row" style="margin-top:10px">${[1,2,3,5,10].map(m => `<button class="btn small alt" data-tm="${m*60}">${m} min</button>`).join("")}${g.timer ? `<button class="btn small ghost" data-tm="0">Stop</button>` : ""}</div>
     </div>` : ""}
+    ${g.status === "live" ? leversHTML(g) : ""}
     ${lastRes}
     <div class="toolbar">
       <button class="btn alt" id="eyeBtn">${showRoles ? "Hide roles" : "Show roles"}</button>
@@ -1041,6 +1045,11 @@ async function renderAdmin(force){
   if (window.QRCode) new QRCode($("#qrbox"), {text: location.origin + location.pathname, width:160, height:160, colorDark:"#07040d", colorLight:"#f3dfb4"});
   const go = async fn => { await fn(); renderAdmin(true); };
   if ($("#dealBtn")) $("#dealBtn").onclick = () => go(deal);
+  app.querySelectorAll("[data-lever]").forEach(b => b.onclick = () => {
+    const [cmd, arg] = b.dataset.lever.split(":");
+    if (b.dataset.confirm && !armed(b, b.dataset.confirm)) return;
+    go(() => host(cmd, cmd === "clue" ? {kind:arg} : cmd === "spotlightResult" ? {result:arg} : {}));
+  });
   app.querySelectorAll("[data-bots]").forEach(b => b.onclick = () => go(() => host("bots", {n:Number(b.dataset.bots)})));
   if ($("#clearBots")) $("#clearBots").onclick = () => go(() => host("clearbots"));
   if ($("#botVoteBtn")) $("#botVoteBtn").onclick = () => go(() => host("botvote"));
@@ -1053,6 +1062,22 @@ async function renderAdmin(force){
   app.querySelectorAll("button[data-id]").forEach(b => b.onclick = () => go(() => hostToggle(b.dataset.id)));
 }
 
+function leversHTML(g){
+  const voting = g.phase === "vote", m = g.mods || {}, sp = m.spotlight;
+  const btn = (lever, label, confirm, extra="") => `<button class="btn small ${extra}" data-lever="${lever}" ${confirm ? `data-confirm="${confirm}"` : ""}>${label}</button>`;
+  return `<div class="panel" style="--c:var(--teal)">
+    <h2>Levers</h2>
+    <div class="label">Clue drops (always true about a living killer)</div>
+    <div class="row">${btn("clue:motive", "Motive clue", "Tap again to drop")}${btn("clue:secret", "Secret clue", "Tap again to drop")}${btn("leak", "Anonymous leak", "Tap again to leak", "alt")}</div>
+    <div class="label" style="margin-top:12px">During the vote</div>
+    ${voting ? `<div class="row">
+      ${sp && sp.status === "pending"
+        ? `<span>Spotlight: <b>${esc(who(g, sp.id))}</b></span>${btn("spotlightResult:told", "They told")}${btn("spotlightResult:refused", "They refused", "", "ghost")}`
+        : btn("spotlight", sp ? "Spotlight someone else" : "Spotlight", "Tap again to pick")}
+      ${m.double ? `<span class="dim">Double elimination is on.</span>` : btn("double", "Double elimination", "Tap again to confirm", "alt")}
+    </div>` : `<p class="dim">Open the vote to use the spotlight or double elimination.</p>`}
+  </div>`;
+}
 function renderSetup(g){
   const s = g.settings;
   $("#app").innerHTML = `
