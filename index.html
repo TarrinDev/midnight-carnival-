@@ -1,0 +1,1088 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#140b24">
+<title>Midnight Carnival</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#140b24; --night2:#22123b; --black:#07040d;
+  --ink:#f6e7c8; --dim:#b9a6d6;
+  --red:#d6333f; --red-dk:#8e1d2a; --red-lt:#ff6b74;
+  --cream:#f3dfb4; --cream-dk:#c9ad78;
+  --gold:#ffc94a; --teal:#3fd0b8; --pink:#ff6fa8; --purple:#8b5cf6;
+  --px:4px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+html{background:var(--night2)}
+body{
+  font-family:'VT323',monospace;font-size:24px;line-height:1.1;color:var(--ink);
+  background:
+    radial-gradient(circle at 20% 30%, #3b2370 0 1.5px, transparent 2.5px) 0 0/90px 80px,
+    radial-gradient(circle at 70% 60%, #4a2d85 0 1px, transparent 2px) 0 0/60px 55px,
+    linear-gradient(var(--night) 0%, var(--night2) 100%) fixed;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ---------- Big top ---------- */
+.tent{height:56px;position:relative;
+  background:repeating-linear-gradient(90deg,var(--red) 0 32px,var(--cream) 32px 64px)}
+.tent::after{content:"";position:absolute;left:0;right:0;top:100%;height:16px;
+  background:
+    linear-gradient(to bottom right,var(--red) 50%,transparent 50%) 0 0/16px 16px,
+    linear-gradient(to bottom left,var(--red) 50%,transparent 50%) 16px 0/16px 16px;
+  background-repeat:repeat-x;
+  -webkit-mask:linear-gradient(90deg,#000 0 32px,transparent 32px 64px) 0 0/64px 16px;
+          mask:linear-gradient(90deg,#000 0 32px,transparent 32px 64px) 0 0/64px 16px}
+.tent::before{content:"";position:absolute;left:0;right:0;top:100%;height:16px;
+  background:
+    linear-gradient(to bottom right,var(--cream) 50%,transparent 50%) 32px 0/16px 16px,
+    linear-gradient(to bottom left,var(--cream) 50%,transparent 50%) 48px 0/16px 16px;
+  background-repeat:repeat-x;
+  -webkit-mask:linear-gradient(90deg,transparent 0 32px,#000 32px 64px) 0 0/64px 16px;
+          mask:linear-gradient(90deg,transparent 0 32px,#000 32px 64px) 0 0/64px 16px}
+
+.lights{display:flex;justify-content:space-around;padding:28px 8px 0;max-width:720px;margin:0 auto}
+.lights i{width:8px;height:8px;background:var(--gold);box-shadow:0 0 8px var(--gold);animation:blink 1.2s steps(1) infinite}
+.lights i:nth-child(3n+1){background:var(--pink);box-shadow:0 0 8px var(--pink);animation-delay:.4s}
+.lights i:nth-child(3n+2){background:var(--teal);box-shadow:0 0 8px var(--teal);animation-delay:.8s}
+@keyframes blink{50%{opacity:.25;box-shadow:none}}
+
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:56px;line-height:.9;text-align:center;color:var(--gold);letter-spacing:2px;
+  text-shadow:4px 4px 0 var(--red-dk),8px 8px 0 var(--black)}
+.sub{text-align:center;color:var(--dim);margin:10px 0 24px;font-size:24px}
+
+/* ---------- Pixel panel ---------- */
+.panel{
+  --c:var(--gold);
+  background:var(--black);border:var(--px) solid var(--c);padding:18px;margin:0 0 18px;
+  clip-path:polygon(0 8px,8px 8px,8px 0,calc(100% - 8px) 0,calc(100% - 8px) 8px,100% 8px,100% calc(100% - 8px),calc(100% - 8px) calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,8px calc(100% - 8px),0 calc(100% - 8px))}
+.panel h2{font-size:32px;color:var(--c);margin-bottom:10px;font-weight:normal}
+.label{color:var(--dim);font-size:20px;text-transform:uppercase;letter-spacing:2px;margin:12px 0 2px}
+.label:first-child{margin-top:0}
+
+/* ---------- Buttons and inputs ---------- */
+.btn{font-family:inherit;font-size:28px;line-height:1;color:var(--cream);background:var(--red);
+  border:none;padding:12px 20px 14px;cursor:pointer;
+  box-shadow:inset -4px -4px 0 var(--red-dk),inset 4px 4px 0 var(--red-lt),0 4px 0 var(--black)}
+.btn:active{transform:translateY(4px);box-shadow:inset -4px -4px 0 var(--red-dk),inset 4px 4px 0 var(--red-lt)}
+.btn.alt{background:var(--purple);box-shadow:inset -4px -4px 0 #5b3aa8,inset 4px 4px 0 #b49bff,0 4px 0 var(--black)}
+.btn.ghost{background:transparent;color:var(--dim);box-shadow:inset 0 0 0 4px var(--dim)}
+.btn.small{font-size:22px;padding:6px 12px 8px}
+.btn.block{display:block;width:100%}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+input{font-family:inherit;font-size:30px;width:100%;padding:10px 12px;margin:8px 0 16px;
+  color:var(--black);background:var(--cream);border:none;outline:none;
+  box-shadow:inset 4px 4px 0 var(--cream-dk)}
+input:focus{box-shadow:inset 4px 4px 0 var(--cream-dk),0 0 0 4px var(--gold)}
+
+/* ---------- Character ticket ---------- */
+.ticket{background:var(--cream);color:var(--black);padding:20px 22px;margin:0 0 18px;position:relative;
+  -webkit-mask:radial-gradient(circle 12px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,
+               radial-gradient(circle 12px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;
+          mask:radial-gradient(circle 12px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,
+               radial-gradient(circle 12px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.ticket .stub{display:flex;justify-content:space-between;font-size:20px;color:var(--red-dk);
+  border-bottom:4px dashed var(--cream-dk);padding-bottom:8px;margin-bottom:12px}
+.ticket h3{font-size:44px;line-height:.9;font-weight:normal;color:var(--red-dk)}
+.ticket .job{font-size:24px;color:#5a4630;margin-bottom:6px}
+.ticket .label{color:#7d6542}
+.ticket p{font-size:24px}
+.ticket details{margin-top:12px;border-top:4px dashed var(--cream-dk);padding-top:10px}
+.ticket summary{cursor:pointer;color:var(--red-dk);font-size:24px;list-style:none}
+.ticket summary::-webkit-details-marker{display:none}
+.ticket summary::before{content:"\25B6  "}
+.ticket details[open] summary::before{content:"\25BC  "}
+
+/* ---------- Role card (hold to reveal) ---------- */
+.role{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;
+  min-height:220px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;
+  background:repeating-linear-gradient(45deg,#2a1748 0 12px,#1d0f34 12px 24px);
+  border:var(--px) solid var(--gold);padding:20px;position:relative}
+.role .back{color:var(--gold);font-size:30px}
+.role .back b{display:block;font-size:64px;font-weight:normal;margin-bottom:6px;color:var(--pink)}
+.role .front{display:none}
+.role.show{background:var(--black);border-color:var(--rc,var(--gold))}
+.role.show .back{display:none}
+.role.show .front{display:block}
+.role .front .rname{font-size:60px;line-height:.9;color:var(--rc,var(--gold));text-shadow:4px 4px 0 #000}
+.role .front .team{color:var(--dim);font-size:22px;margin:4px 0 12px;letter-spacing:2px;text-transform:uppercase}
+.role .front p{font-size:24px;max-width:460px;margin:0 auto}
+.waiting{text-align:center;color:var(--dim);padding:20px}
+.waiting .spin{display:inline-block;animation:spin 1s steps(4) infinite;color:var(--gold);font-size:40px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.out{position:fixed;inset:0;background:rgba(7,4,13,.92);display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:24px;z-index:20}
+.out h2{font-size:72px;color:var(--red);text-shadow:4px 4px 0 #000}
+.out p{color:var(--dim);font-size:26px;margin-top:8px}
+
+.msg{color:var(--pink);min-height:26px;text-align:center}
+
+/* ---------- Admin ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--black);border:var(--px) solid var(--teal);text-align:center;padding:8px 4px}
+.stat b{display:block;font-size:44px;font-weight:normal;color:var(--teal);line-height:1}
+.stat span{font-size:18px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+.stat.danger{border-color:var(--red)} .stat.danger b{color:var(--red)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.toolbar .spacer{flex:1}
+table{width:100%;border-collapse:collapse;font-size:22px}
+th{text-align:left;color:var(--dim);font-weight:normal;font-size:18px;text-transform:uppercase;letter-spacing:1px;
+  border-bottom:4px solid #3a2560;padding:4px 6px}
+td{padding:8px 6px;border-bottom:2px dashed #2c1b4a;vertical-align:middle}
+tr.dead td{opacity:.4;text-decoration:line-through}
+tr.dead td:last-child{opacity:1;text-decoration:none}
+.badge{display:inline-block;padding:0 8px 2px;color:var(--black);background:var(--rc,var(--dim))}
+.blur .badge{filter:blur(6px)}
+.num{color:var(--dim);width:30px}
+.qr{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.qr #qrbox{background:var(--cream);padding:10px;line-height:0}
+.qr code{font-family:inherit;color:var(--gold);word-break:break-all}
+
+
+/* ---------- Jagged button ---------- */
+.btn.jagged{padding-bottom:24px;box-shadow:inset -4px 0 0 var(--red-dk),inset 4px 4px 0 var(--red-lt);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),95.833% 100%,91.667% calc(100% - 10px),87.5% 100%,83.333% calc(100% - 10px),79.167% 100%,75% calc(100% - 10px),70.833% 100%,66.667% calc(100% - 10px),62.5% 100%,58.333% calc(100% - 10px),54.167% 100%,50% calc(100% - 10px),45.833% 100%,41.667% calc(100% - 10px),37.5% 100%,33.333% calc(100% - 10px),29.167% 100%,25% calc(100% - 10px),20.833% 100%,16.667% calc(100% - 10px),12.5% 100%,8.333% calc(100% - 10px),4.167% 100%,0 calc(100% - 10px))}
+.btn.jagged:active{box-shadow:inset -4px 0 0 var(--red-dk),inset 4px 4px 0 var(--red-lt)}
+
+/* ---------- Portrait + deal animation ---------- */
+.who{display:flex;gap:14px;align-items:center;margin-bottom:6px}
+.who > div{min-width:0}
+.who h3{overflow-wrap:break-word;font-size:clamp(30px,9vw,44px)}
+.portrait{width:104px;height:104px;flex:none;image-rendering:pixelated;image-rendering:crisp-edges;
+  background:#2a1748;border:4px solid var(--red-dk)}
+.mini{width:36px;height:36px;image-rendering:pixelated;vertical-align:middle;border:2px solid #3a2560;background:#2a1748}
+.ticket.deal{animation:deal .6s steps(6) both}
+@keyframes deal{from{transform:translateY(60px) rotate(-4deg);opacity:0}to{transform:none;opacity:1}}
+
+/* ---------- Knife + crowd vote ---------- */
+.knife{vertical-align:-4px;margin-left:8px}
+.picks{display:grid;gap:8px}
+.pick{display:flex;align-items:center;gap:10px;width:100%;text-align:left;font-family:inherit;font-size:24px;
+  color:var(--ink);background:#1d0f34;border:4px solid #3a2560;padding:6px 10px;cursor:pointer}
+.pick.on{border-color:var(--gold);background:#3a2560}
+.pick.on::after{content:"\2714";margin-left:auto;color:var(--gold)}
+
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper b{font-size:44px;font-weight:normal;color:var(--gold);min-width:64px;text-align:center}
+
+/* ---------- Sketch-mode bar ---------- */
+.demo{position:fixed;left:0;right:0;bottom:0;background:#000;border-top:4px solid var(--pink);
+  padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:30;font-size:20px}
+.demo span{color:var(--pink);flex:1 1 220px}
+
+@media (max-width:560px){
+  h1{font-size:44px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  td,th{padding:6px 3px}
+  .hide-sm{display:none}
+  td .btn.small{font-size:18px;padding:4px 8px 6px}
+  .badge{padding:0 4px 2px}
+}
+
+/* ---------- v2: game screens ---------- */
+.dim{color:var(--dim)}
+select,textarea{font-family:inherit;font-size:24px;width:100%;padding:8px 10px;margin:6px 0 10px;color:var(--black);
+  background:var(--cream);border:none;outline:none;box-shadow:inset 4px 4px 0 var(--cream-dk);border-radius:0}
+textarea{resize:vertical}
+select:focus,textarea:focus{box-shadow:inset 4px 4px 0 var(--cream-dk),0 0 0 4px var(--gold)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.chip{display:inline-block;margin:0 auto 12px;padding:2px 12px 4px;background:var(--purple);color:var(--cream);font-size:22px;letter-spacing:1px}
+.chip.vote{background:var(--red)}
+#app > .chip{display:table}
+.feed .news,.inbox .news{padding:8px 0;border-bottom:2px dashed #2c1b4a;font-size:22px}
+.feed .news:last-child,.inbox .news:last-child{border-bottom:none}
+.news.tip b{color:var(--gold);font-weight:normal}
+.news.death{color:#ffb3b8}
+.news.good{color:var(--teal)}
+.news.bad{color:#ffb3b8}
+.news.ghost{color:var(--pink)}
+details.panel > summary{cursor:pointer;list-style:none}
+details.panel > summary::-webkit-details-marker{display:none}
+details.panel > summary h2::after{content:"  +";color:var(--dim)}
+details.panel[open] > summary h2::after{content:"  -"}
+.powers .icon,.req .icon{vertical-align:-4px;margin-right:6px}
+.req{animation:pulse 1s steps(2) infinite}
+@keyframes pulse{50%{border-color:var(--red)}}
+.role .front .icon{display:block;margin:0 auto 6px}
+.badge .icon{vertical-align:-3px}
+.nospoil{margin-top:8px;color:var(--gold)}
+.tally{list-style:none;margin:8px 0}
+.logline{font-size:20px;padding:3px 0;border-bottom:2px dashed #2c1b4a}
+.seg{display:flex;gap:10px}
+.seg .btn{min-width:64px}
+.toggles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.tog{display:flex;align-items:center;gap:8px;text-align:left;font-family:inherit;font-size:22px;color:var(--dim);
+  background:#1d0f34;border:4px solid #3a2560;padding:6px 8px;cursor:pointer;opacity:.55}
+.tog.on{opacity:1;color:var(--ink);border-color:var(--teal)}
+.tog small{display:block;font-size:16px;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+#toast{position:fixed;left:50%;top:16px;transform:translate(-50%,-120%);background:var(--red);color:var(--cream);
+  padding:8px 16px;font-size:24px;z-index:50;transition:transform .2s steps(3);box-shadow:0 4px 0 var(--black)}
+#toast.on{transform:translate(-50%,0)}
+.demo select{width:auto;margin:0;font-size:20px;padding:4px 6px}
+
+.stubcard{position:relative;display:flex;align-items:baseline;gap:14px;background:var(--cream);color:var(--red-dk);
+  padding:12px 18px 12px 30px;max-width:280px;font-size:22px;
+  -webkit-mask:radial-gradient(circle 8px at 0 50%,#0000 98%,#000) left/100% 100% no-repeat;
+          mask:radial-gradient(circle 8px at 0 50%,#0000 98%,#000) left/100% 100% no-repeat}
+.stubcard b{font-size:44px;font-weight:normal;line-height:1}
+.stubcard i{font-style:normal;font-size:44px;line-height:1;color:var(--black)}
+.stubcard .tear{position:absolute;right:0;top:0;bottom:0;width:10px;
+  background:linear-gradient(135deg,var(--black) 25%,transparent 25%) 0 0/10px 10px,linear-gradient(45deg,var(--black) 25%,transparent 25%) 0 0/10px 10px}
+
+.new{background:var(--red);color:var(--cream);font-size:20px;padding:0 6px 2px;vertical-align:4px;animation:blink 1.2s steps(1) infinite}
+@media (min-width:600px){ .picks{grid-template-columns:1fr 1fr} }
+@media (max-width:360px){
+  .portrait{width:80px;height:80px}
+  .who h3{font-size:30px}
+  .ticket{padding:16px 16px}
+}
+.icon{flex:none}
+.timer{display:table;margin:0 auto 12px;padding:2px 14px 4px;background:var(--black);border:4px solid var(--gold);color:var(--gold);font-size:30px;letter-spacing:2px}
+.timer.big{font-size:64px;margin:4px 0 0;padding:4px 20px}
+.timer.done{border-color:var(--red);color:var(--red);animation:blink 1s steps(1) infinite}
+</style>
+</head>
+<body>
+<div class="tent" aria-hidden="true"></div>
+<div class="lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<main class="wrap" id="app"></main>
+<div id="toast" role="status"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const SEANCE_Q = [
+  "Did you see it coming?","Was your killer someone you trusted?","Is the one who got you still in this room?",
+  "Is there more than one killer left?","Should we trust the last person who accused someone?","Was money behind your death?",
+  "Did you die for something you knew?","Is the Werewolf still among us?"
+];
+const VICTIM = "Silas Baylor, owner of Baylor's Midnight Carnival";
+const MAX_PLAYERS = 35;
+const LIARS = ["killer","stooge","werewolf","jester"];
+const MSG_MAX = 140;
+
+/* =========================================================
+   ROLES
+   ========================================================= */
+const ROLES = {
+  killer:       {name:"Killer",        team:"killers",  color:"#d6333f", icon:"knife",
+                 text:"You killed Silas Baylor. You can see the other killers. Each vote, agree on a victim. You may lie about your secret."},
+  stooge:       {name:"Stooge",        team:"killers",  color:"#b3262f", icon:"stooge",
+                 text:"You know who the killers are. They do not know you. You win if they win. You may lie about your secret."},
+  werewolf:     {name:"Werewolf",      team:"alone",    color:"#9aa6b2", icon:"wolf",
+                 text:"Every other round is a full moon. On a full moon, you kill one player. You win if you are the last one standing. You may lie about your secret."},
+  jester:       {name:"Jester",        team:"alone",    color:"#ff6fa8", icon:"jester",
+                 text:"You win if the group votes you out. After you die, you can haunt one player with a message. You may lie about your secret."},
+  loanshark:    {name:"Loan Shark",    team:"alone",    color:"#3fd0b8", icon:"shark",
+                 text:"Someone owes you. You win if the group votes them out. If they die any other way, you become a Jester."},
+  stowaway:     {name:"Stowaway",      team:"alone",    color:"#c9ad78", icon:"crate",
+                 text:"You snuck in. You win if you are still alive when the game ends, no matter who else wins. Make friends."},
+  ventriloquist:{name:"Ventriloquist", team:"alone",    color:"#8b5cf6", icon:"puppet",
+                 text:"You can send 3 anonymous messages to every phone. They look exactly like the Tipster's. You win with whoever wins."},
+  detective:    {name:"Detective",     team:"carnival", color:"#3fd0b8", icon:"glass",
+                 text:"Once per round, ask a player for their secret. They can tell you or refuse. You will know which."},
+  strongman:    {name:"Strongman",     team:"carnival", color:"#ffc94a", icon:"barbell",
+                 text:"Each vote, protect one player. If they are attacked, you die in their place and take the attacker with you. Not yourself, and not the same player twice in a row."},
+  ringmaster:   {name:"Ringmaster",    team:"carnival", color:"#8b5cf6", icon:"tophat",
+                 text:"Reveal yourself to everyone and your vote counts three times from then on."},
+  insomniac:    {name:"Insomniac",     team:"carnival", color:"#ffc94a", icon:"moon",
+                 text:"Every other round you stay awake and learn one player who is not a killer. They find out someone vouches for them, but not who."},
+  medium:       {name:"Medium",        team:"carnival", color:"#e8eef3", icon:"ghost",
+                 text:"Once per round, hold a seance. Ask a dead troupe member one question. They answer yes or no."},
+  sweetheart:   {name:"Sweetheart",    team:"carnival", color:"#ff6fa8", icon:"heart",
+                 text:"You and your sweetheart know each other. If one of you dies, so does the other."},
+  sharpshooter: {name:"Sharpshooter",  team:"carnival", color:"#d6333f", icon:"target",
+                 text:"Shoot a player at any time. Hit a Killer, the Stooge, or the Werewolf and you are fine. Hit anyone else and you die too."},
+  heckler:      {name:"Heckler",       team:"carnival", color:"#ffc94a", icon:"megaphone",
+                 text:"Once per game, during a vote, shout someone down. Their vote does not count that round."},
+  tipster:      {name:"Tipster",       team:"carnival", color:"#f3dfb4", icon:"envelope",
+                 text:"You can send 3 anonymous messages to every phone."},
+  hypnotist:    {name:"Hypnotist",     team:"carnival", color:"#8b5cf6", icon:"spiral",
+                 text:"Once per game, during a vote, choose where another player's vote goes. They find out afterward."},
+  watchman:     {name:"Watchman",      team:"carnival", color:"#ffc94a", icon:"lantern",
+                 text:"Each vote, watch one player. Afterward you learn whether they used a power and how many people visited them."},
+  daredevil:    {name:"Daredevil",     team:"carnival", color:"#ff8c2e", icon:"helmet",
+                 text:"Twice per game, brace during a vote. Any attack on you that round fails, and the attackers find out."},
+  innocent:     {name:"Innocent",      team:"carnival", color:"#f3dfb4", icon:"ticket",
+                 text:"No powers. Tell the truth. Find the killers before they find you."}
+};
+// Order matters: when the cast is small, roles near the end drop out first.
+const SPECIAL_ORDER = ["detective","strongman","jester","stooge","ringmaster","medium","sharpshooter","werewolf","daredevil",
+  "insomniac","watchman","loanshark","sweetheart","tipster","hypnotist","heckler","ventriloquist","stowaway"];
+const COUNTS = {sweetheart:2};
+const TEAM_LABEL = {killers:"Killers", carnival:"Carnival", alone:"Plays alone"};
+
+
+const EVIL = ["killer","stooge","werewolf"];
+const byId = (g,id) => g.players.find(p => p.id === id);
+const castOf = g => g.players.filter(p => !p.spectator);
+const livingCast = g => g.players.filter(p => !p.spectator && p.alive);
+const inCrowd = p => p.spectator || !p.alive;
+const isFullMoon = g => g.round % 2 === 1;
+const charName = (g,id) => { const p = byId(g,id); return p && !p.spectator ? CHARACTERS[p.char].name : "?"; };
+const who = (g,id) => { const p = byId(g,id); return p ? `${charName(g,id)} (${p.name})` : "?"; };
+
+/* =========================================================
+   SERVER CONNECTION
+   ========================================================= */
+const ME = "mc-pid", TOK = "mc-token", PIN = "mc-pin";
+const mem = {};
+const Safe = {
+  get(k){ try { const v = localStorage.getItem(k); if (v !== null) return v; } catch {} return k in mem ? mem[k] : null; },
+  set(k,v){ mem[k] = v; try { localStorage.setItem(k, v); } catch {} },
+  del(k){ delete mem[k]; try { localStorage.removeItem(k); } catch {} }
+};
+let G = null, lastText = "", clockOffset = 0, offline = false;
+const sigOf = t => t.replace(/"now":\d+,?/, "");
+function take(v){ G = v; lastText = JSON.stringify(v); clockOffset = (v.now || Date.now()) - Date.now(); return v; }
+async function call(method, body){
+  const headers = {"content-type":"application/json"};
+  if (isAdmin() && Safe.get(PIN)) headers["x-admin-pin"] = Safe.get(PIN);
+  const url = method === "GET" && !isAdmin()
+    ? `/api/game?pid=${encodeURIComponent(Safe.get(ME) || "")}&t=${encodeURIComponent(Safe.get(TOK) || "")}`
+    : "/api/game";
+  const r = await fetch(url, {method, headers, body: body ? JSON.stringify(body) : undefined, cache:"no-store"});
+  if (r.status === 401) { Safe.del(PIN); Safe.del("mc-admin"); }
+  const data = await r.json().catch(() => ({error:"The carnival did not answer."}));
+  return {status:r.status, data};
+}
+const Store = {
+  async load(){
+    try {
+      const {status, data} = await call("GET");
+      if (status === 401) return G || {status:"none", players:[], feed:[]};
+      if (offline) { offline = false; flash("Back online."); }
+      return take(data);
+    } catch {
+      if (!offline) { offline = true; flash("Connection lost. Retrying..."); }
+      return G || {status:"none", players:[], feed:[]};
+    }
+  }
+};
+async function join(name){
+  try {
+    const {data} = await call("POST", {op:"join", name});
+    if (data.error) return {error:data.error};
+    Safe.set(TOK, data.token); take(data.view);
+    return {player:{id:data.pid}};
+  } catch { return {error:"Could not reach the carnival. Check your signal."}; }
+}
+async function rejoin(code){
+  try {
+    const {data} = await call("POST", {op:"rejoin", code});
+    if (data.error) return data.error;
+    Safe.set(ME, data.pid); Safe.set(TOK, data.token); take(data.view); return null;
+  } catch { return "Could not reach the carnival."; }
+}
+async function act(pid, kind, data){
+  try {
+    const r = await call("POST", {op:"act", pid, token:Safe.get(TOK), kind, data});
+    if (r.data.view) take(r.data.view);
+    return r.data.error || null;
+  } catch { return "Could not reach the carnival. Try again."; }
+}
+async function host(cmd, args){
+  try {
+    const r = await call("POST", {cmd, args});
+    if (r.data.error) { flash(r.data.error); return; }
+    take(r.data);
+  } catch { flash("Could not reach the carnival."); }
+}
+const deal = () => host("deal"), openVote = () => host("open"), closeVote = () => host("close"),
+  hostToggle = id => host("toggle", {id}), setCap = n => host("cap", {n}), wipe = () => host("wipe"),
+  saveSettings = s => host("settings", {settings:s}), startLobby = () => host("lobby"), setTimer = seconds => host("timer", {seconds});
+
+/* =========================================================
+   TROUPE (names and looks only; the rest lives on the server)
+   ========================================================= */
+const CHARACTERS = [{"name":"Madame Zora","job":"Fortune Teller","look":{"hat":"turban"}},
+  {"name":"Ollie Pratt","job":"Clown","look":{"face":"clown","hair":"curly"}},
+  {"name":"Vera Lux","job":"Tightrope Walker","look":{"hair":"bun"}},
+  {"name":"Dr. Ignatius Thistle","job":"Tonic Salesman","look":{"hat":"bowler","beard":"mustache"}},
+  {"name":"Mabel Finch","job":"Ticket Booth","look":{"hair":"bun"}},
+  {"name":"Bruno Kask","job":"Lion Tamer","look":{"beard":"full"}},
+  {"name":"Pip Malloy","job":"Ferris Wheel Operator"},
+  {"name":"Lottie Grimm","job":"Sword Swallower","look":{"hair":"long"}},
+  {"name":"Hester Moss","job":"Bearded Lady","look":{"hair":"long","beard":"full"}},
+  {"name":"Gus Ember","job":"Fire Breather"},
+  {"name":"Delphine Rook","job":"Knife Thrower","look":{"hair":"long"}},
+  {"name":"Marcel Fenn","job":"Mime","look":{"face":"mime","hat":"bowler"}},
+  {"name":"Ingrid Vos","job":"Contortionist","look":{"hair":"bun"}},
+  {"name":"Cecil Drabb","job":"Bookkeeper","look":{"hair":"bald"}},
+  {"name":"Rosalind Tate","job":"Cotton Candy Vendor","look":{"hair":"curly"}},
+  {"name":"Jasper Quill","job":"Barker","look":{"hat":"bowler","beard":"mustache"}},
+  {"name":"Nell Bramble","job":"Animal Keeper","look":{"hair":"long"}},
+  {"name":"Theo Varga","job":"Carousel Mechanic","look":{"beard":"full"}},
+  {"name":"Penny Thorne","job":"Hall of Mirrors","look":{"hair":"short"}},
+  {"name":"The Great Augustin","job":"Magician","look":{"hat":"top","beard":"mustache"}},
+  {"name":"Wren Saltz","job":"Magician's Assistant","look":{"hair":"bun"}},
+  {"name":"Barnaby Hollis","job":"Stilt Walker","look":{"hat":"top"}},
+  {"name":"Flora Dunmore","job":"Snake Charmer","look":{"hat":"turban"}},
+  {"name":"Otto Grieve","job":"Groundskeeper","look":{"hair":"bald","beard":"full"}},
+  {"name":"Marisol Vane","job":"Trapeze Artist","look":{"hair":"long"}},
+  {"name":"Ezra Coil","job":"Escape Artist","look":{"hair":"mohawk"}},
+  {"name":"Imogen Pell","job":"Seamstress","look":{"hair":"bun"}},
+  {"name":"Horace Bell","job":"Organ Grinder","look":{"hat":"bowler","beard":"mustache"}},
+  {"name":"Clementine Ash","job":"Oddities Curator","look":{"hair":"long"}},
+  {"name":"Wally Dunn","job":"Human Cannonball","look":{"hair":"short"}},
+  {"name":"Opal Fairweather","job":"Funnel Cake Fryer","look":{"hair":"curly"}},
+  {"name":"Felix Marrow","job":"Ghost Train Operator","look":{"hat":"top"}},
+  {"name":"Agnes Pike","job":"Ring Toss Operator","look":{"hair":"bun"}},
+  {"name":"Tobias Wick","job":"Electrician","look":{"hair":"short"}},
+  {"name":"Juniper Hale","job":"The New Hire","look":{"hair":"short"}}];
+
+/* =========================================================
+   ROLE ICONS (12 x 12 pixel art)
+   ========================================================= */
+const PAL = {k:"#07040d",w:"#f3dfb4",l:"#e8eef3",g:"#9aa6b2",G:"#5f6b77",r:"#d6333f",R:"#8e1d2a",y:"#ffc94a",
+  b:"#5a3825",B:"#3b2416",p:"#8b5cf6",P:"#ff6fa8",t:"#3fd0b8",o:"#ff8c2e"};
+const ICONS = {
+  knife:   ["............","..........l.",".........lg.","........lg..",".......lg...","......lg....",".....lg.....","..B.lg......","...BB.......","..bbB.......",".bbB........",".bB........."],
+  stooge:  ["............","...kkkkkk...","...kkkkkk...","...kkkkkk...",".kkkkkkkkkk.","............","..wwwwwwww..","..wkkwwkkw..","..wwwwwwww..","...wwwwww...","............","............"],
+  wolf:    ["............",".k........k.",".kk......kk.",".kGk....kGk.",".kGGkkkkGGk.",".kGGGGGGGGk.",".kGyGGGGyGk.",".kGGGGGGGGk.","..kGGwwGGk..","...kGkkGk...","....kwwk....",".....kk....."],
+  jester:  ["y..........y","rr........pp",".rr......pp.","..rr.yy.pp..","...rrrpppp..","..yyyyyyyy..","..wwwwwwww..","..wkwwwwkw..","..wwwwwwww..","..wwwrrwww..","...wwwwww...","............"],
+  shark:   ["............","......kk....",".....kGk....","....kGGk....","...kGGGk....","..kGGGGk....",".kGGGGGk....","kGGGGGGGk...","tttttttttttt","t.tt.tt.tt.t","tttttttttttt","............"],
+  crate:   ["............",".bbbbbbbbbb.",".byyyyyyyyb.",".bybyyyybyb.",".byybyybyyb.",".byyybbyyyb.",".byyybbyyyb.",".byybyybyyb.",".bybyyyybyb.",".byyyyyyyyb.",".bbbbbbbbbb.","............"],
+  puppet:  ["....kkkk....","...kwwwwk...","..kwkwwkwk..","..kwwwwwwk..","..kwRRRRwk..","..kwkkkkwk..","...kwwwwk...","....kkkk....","...kppppk...","..kppppppk..","..kppppppk..","..kkkkkkkk.."],
+  glass:   ["............","...kkkk.....","..klllgk....",".kllllggk...",".klllgggk...",".kllgggGk...",".kggggGGk...","..kgGGGk....","...kkkkbk...",".......bbk..","........bbk.",".........bb."],
+  barbell: ["............","............",".kk......kk.","kGGk....kGGk","kGGk....kGGk","kGGkyyyykGGk","kGGkyyyykGGk","kGGk....kGGk","kGGk....kGGk",".kk......kk.","............","............"],
+  tophat:  ["............","...kkkkkk...","...kkkkkk...","...kkkkkk...","...kkkkkk...","...kkkkkk...","...rrrrrr...","...kkkkkk...","kkkkkkkkkkkk",".kkkkkkkkkk.","............","............"],
+  moon:    ["....yyy.....","...yy.......","..yy........","..yy........","..yy........","...yy.......","....yyy.....","............","..kwwwwwwk..",".kwwwkkwwwk.","..kwwwwwwk..","............"],
+  ghost:   ["............","....wwww....","...wwwwww...","..wwwwwwww..","..wkkwwkkw..","..wkkwwkkw..","..wwwwwwww..","..wwwkkwww..","..wwwwwwww..","..wwwwwwww..","..w.ww.ww.w.","............"],
+  heart:   ["............","..rr....rr..",".rPPr..rrrr.","rPPrrrrrrrrr","rPrrrrrrrrrr","rrrrrrrrrrrr",".rrrrrrrrrr.","..rrrrrrrr..","...rrrrrr...","....rrrr....",".....rr.....","............"],
+  target:  ["............","....rrrr....","..rrwwwwrr..","..rwwrrwwr..",".rwrrwwrrwr.",".rwrwrrwrwr.",".rwrwrrwrwr.",".rwrrwwrrwr.","..rwwrrwwr..","..rrwwwwrr..","....rrrr....","............"],
+  megaphone:["............","..........y.","........kky.","......kkyyk.","...kkkyyyyk.","..kwkyyyyyk.","..kwkyyyyyk.","...kkkyyyyk.","......kkyyk.","........kky.","..........y.","............"],
+  envelope:["............","............",".kkkkkkkkkk.",".kwkwwwwkwk.",".kwwkwwkwwk.",".kwwwkkwwwk.",".kwwwwwwwwk.",".kwwwwwwwwk.",".kkkkkkkkkk.","............","............","............"],
+  spiral:  ["............",".pppppppppp.",".pkkkkkkkkp.",".pkppppppkp.",".pkpkkkkpkp.",".pkpkppkpkp.",".pkpkpkkpkp.",".pkpkppppkp.",".pkpkkkkkkp.",".pkppppppppp",".pkkkkkkkkkk","............"],
+  lantern: ["....kkkk....","....k..k....","...kkkkkk...","..kyyyyyyk..","..kyoooyyk..","..kyoyyoyk..","..kyyooyyk..","..kyyyyyyk..","...kkkkkk...","....kkkk....","............","............"],
+  helmet:  ["...o..o.....","..ooo.oo..o.","..oyooyo.oo.","...yyyyyoo..","..rrrrrrrr..",".rrwwrrrrrr.",".rwwrrrrrrr.",".rrrrkkkkrr.",".rrrkGGGGkr.",".rrrkkkkkkr.","..rr....rr..","............"],
+  ticket:  ["............","............","yyyyyyyyyyyy","y.yyyyyyyy.y","yyRRRRRRRyyy","yyyyyyyyyyyy","yyRRRRRyyyyy","yyyyyyyyyyyy","y.yyyyyyyy.y","yyyyyyyyyyyy","............","............"]
+};
+function iconSVG(name, px=36){
+  const rows = ICONS[name] || ICONS.ticket;
+  let rects = "";
+  rows.forEach((row,y) => [...row].forEach((ch,x) => { if (PAL[ch]) rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[ch]}"/>`; }));
+  return `<svg class="icon" viewBox="0 0 12 12" width="${px}" height="${px}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+}
+const roleIcon = (role, px) => iconSVG(ROLES[role] ? ROLES[role].icon : "ticket", px);
+
+/* =========================================================
+   PIXEL PORTRAITS
+   ========================================================= */
+function seeded(str){ let h=1779033703^str.length; for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}
+  return ()=>{h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;return (h>>>0)/4294967296;}; }
+const SKIN=["#f6d5b8","#eab894","#d69a6c","#b9774a","#8d5530","#5e3a22"];
+const HAIR=["#1d140e","#3b2416","#6b3f22","#a0522d","#d9a441","#e9e4dc","#b3262f","#2a2a2a","#6d4c9e"];
+const COSTUME=["#d6333f","#3fd0b8","#ffc94a","#8b5cf6","#ff6fa8","#2f7de1","#3fa34d"];
+function drawPortrait(canvas, ch){
+  const r=seeded(ch.name), pick=a=>a[Math.floor(r()*a.length)], L=ch.look||{};
+  const c=canvas.getContext("2d"); c.clearRect(0,0,16,16);
+  const px=(x,y,col,w=1,h=1)=>{c.fillStyle=col;c.fillRect(x,y,w,h);};
+  let skin=pick(SKIN), hair=pick(HAIR), coat=pick(COSTUME), trim=pick(COSTUME);
+  const style=L.hair||pick(["short","short","long","curly","bun","bald","mohawk"]);
+  const hat=L.hat||(r()<.25?pick(["top","bowler"]):"none");
+  if(L.face==="clown"){hair="#e0352f";}
+  const face=L.face==="clown"||L.face==="mime"?"#f7f3ea":skin;
+  // backdrop stripes
+  for(let x=0;x<16;x+=2) px(x,0,"#2a1748",1,16);
+  // shoulders + costume
+  px(1,14,coat,14,2); px(3,13,coat,10,1);
+  for(let x=2;x<15;x+=3) px(x,15,trim);
+  if(L.face==="mime"){ for(let x=1;x<15;x++) px(x,14+(x%2),x%2?"#111":"#f7f3ea"); }
+  // long hair behind
+  if(style==="long") px(3,5,hair,10,8);
+  // neck + head
+  px(7,12,face,2,2);
+  px(5,4,face,6,1); px(4,5,face,8,7); px(5,12,face,6,1);
+  // eyes, mouth
+  const eye=L.face==="mime"?"#111":"#1a0f12";
+  px(6,8,eye); px(9,8,eye);
+  if(L.face==="mime"){ px(6,7,"#111"); px(9,7,"#111"); }
+  px(7,10,L.face==="clown"?"#c4232c":"#7a3b3b",2,1);
+  if(L.face==="clown"){ px(6,10,"#c4232c"); px(9,10,"#c4232c"); px(7,9,"#e0352f",2,1); }
+  else px(5,9,"rgba(214,51,63,.35)"),px(10,9,"rgba(214,51,63,.35)");
+  // hair on top
+  if(style==="short"||style==="long"||style==="bun"){ px(4,3,hair,8,2); px(4,5,hair,1,2); px(11,5,hair,1,2); }
+  if(style==="bun"){ px(6,1,hair,4,2); }
+  if(style==="curly"){ px(3,3,hair,10,2); px(2,5,hair,2,4); px(12,5,hair,2,4); }
+  if(style==="mohawk"){ px(7,1,hair,2,4); }
+  // facial hair
+  if(L.beard==="full"){ px(4,10,hair,8,3); px(5,13,hair,6,1); px(7,10,"#7a3b3b",2,1); }
+  if(L.beard==="mustache"){ px(6,9,hair,4,1); px(5,10,hair,1,1); px(10,10,hair,1,1); }
+  // hats
+  if(hat==="top"){ px(5,0,"#111",6,4); px(5,3,"#d6333f",6,1); px(3,4,"#111",10,1); }
+  if(hat==="bowler"){ px(5,2,"#2b1d14",6,2); px(4,4,"#2b1d14",8,1); }
+  if(hat==="turban"){ px(4,2,coat,8,3); px(7,2,"#ffc94a",2,1); px(7,3,"#3fd0b8"); }
+}
+function drawSilhouette(canvas){
+  const c=canvas.getContext("2d"); c.clearRect(0,0,16,16);
+  const px=(x,y,col,w=1,h=1)=>{c.fillStyle=col;c.fillRect(x,y,w,h);};
+  for(let x=0;x<16;x+=2) px(x,0,"#2a1748",1,16);
+  // head-and-shoulders shape as [x, y, width, height]
+  const shape=[[6,3,4,1],[5,4,6,1],[4,5,8,5],[5,10,6,1],[6,11,4,1],[7,12,2,1],[3,13,10,1],[2,14,12,1],[1,15,14,1]];
+  // purple rim: the shape nudged one pixel each way, then the black body on top
+  [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dx,dy]) => shape.forEach(([x,y,w,h]) => px(x+dx,y+dy,"#6d4c9e",w,h)));
+  shape.forEach(([x,y,w,h]) => px(x,y,"#07040d",w,h));
+  // faint question mark on the face
+  const q="#3a2560"; px(7,5,q,2,1); px(9,6,q); px(8,7,q); px(8,9,q);
+}
+function portraitHTML(cls){ return `<canvas class="${cls}" width="16" height="16"></canvas>`; }
+
+
+/* =========================================================
+   VIEW HELPERS
+   ========================================================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let view = location.hash === "#admin" ? "admin" : "player";
+const isAdmin = () => view === "admin";
+let lastSig = "", justJoined = false;
+const KNIFE = `<svg class="knife" viewBox="0 0 16 7" width="44" height="19" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="2" width="5" height="2" fill="#5a3825"/><rect x="1" y="2" width="1" height="1" fill="#c9ad78"/><rect x="3" y="2" width="1" height="1" fill="#c9ad78"/><rect x="5" y="1" width="1" height="4" fill="#3b2416"/><rect x="6" y="1" width="8" height="1" fill="#e8eef3"/><rect x="6" y="2" width="9" height="1" fill="#9aa6b2"/><rect x="6" y="3" width="8" height="1" fill="#5f6b77"/><rect x="15" y="2" width="1" height="1" fill="#5f6b77"/><rect x="14" y="1" width="1" height="1" fill="#5f6b77"/><rect x="10" y="4" width="1" height="1" fill="#b3262f"/><rect x="10" y="5" width="1" height="2" fill="#d6333f"/></svg>`;
+const busyTyping = () => { const a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && $("#app").contains(a); };
+const opts = (list, g, blank="Choose a player") => `<option value="">${blank}</option>` + list.map(p => `<option value="${p.id}">${esc(CHARACTERS[p.char].name)} (${esc(p.name)})</option>`).join("");
+const castLabel = p => `${esc(CHARACTERS[p.char].name)} <span style="color:var(--dim)">(${esc(p.name)})</span>`;
+function flash(text){ const m = $("#toast"); m.textContent = text; m.classList.add("on"); clearTimeout(flash.t); flash.t = setTimeout(() => m.classList.remove("on"), 2600); }
+async function doAct(kind, data){ const err = await act(Safe.get(ME), kind, data); if (err) flash(err); lastSig = ""; await renderPlayer(true); }
+function feedHTML(g, limit=4){
+  const items = g.feed.slice(-limit).reverse();
+  if (!items.length) return "";
+  return `<div class="panel feed" style="--c:var(--pink)"><h2>Carnival news</h2>${items.map(f => `
+    <div class="news ${f.kind}">${f.kind === "tip" ? `<b>ANONYMOUS TIP:</b> ` : ""}${esc(f.text)}</div>`).join("")}</div>`;
+}
+function inboxHTML(g, pid){
+  const items = (g.inbox[pid] || []).slice().reverse();
+  if (!items.length) return "";
+  const seen = Number(Safe.get("mc-seen-" + pid) || 0), fresh = items.length - seen;
+  return `<details class="panel inbox" style="--c:var(--teal)" data-pid="${pid}" data-n="${items.length}"><summary><h2 style="display:inline">Private messages${fresh > 0 ? ` <span class="new">${fresh} new</span>` : ` (${items.length})`}</h2></summary>
+    ${items.map(m => `<div class="news ${m.kind}">${esc(m.text)}</div>`).join("")}</details>`;
+}
+function wireInbox(){
+  const box = $("#app").querySelector(".inbox"); if (!box) return;
+  box.addEventListener("toggle", () => { if (box.open) Safe.set("mc-seen-" + box.dataset.pid, box.dataset.n); const n = box.querySelector(".new"); if (box.open && n) n.remove(); });
+}
+function timerHTML(g, big){
+  return g.timer && g.timer.endsAt ? `<div class="timer ${big ? "big" : ""}" data-ends="${g.timer.endsAt}"></div>` : "";
+}
+function tickTimers(){
+  document.querySelectorAll(".timer[data-ends]").forEach(el => {
+    const left = Math.max(0, Math.round((Number(el.dataset.ends) - (Date.now() + clockOffset)) / 1000));
+    el.textContent = left ? `${Math.floor(left/60)}:${String(left%60).padStart(2,"0")}` : "TIME!";
+    el.classList.toggle("done", !left);
+  });
+}
+setInterval(tickTimers, 500);
+function phaseChip(g){
+  if (g.status !== "live") return "";
+  return `<div class="chip ${g.phase}">Round ${g.round} &middot; ${g.phase === "vote" ? "VOTING" : "MINGLE"}${isFullMoon(g) ? " &middot; FULL MOON" : ""}</div>${timerHTML(g)}`;
+}
+
+/* =========================================================
+   PLAYER VIEW
+   ========================================================= */
+async function renderPlayer(force){
+  const g = await Store.load();
+  const me = Safe.get(ME);
+  const p = byId(g, me);
+  const sig = sigOf(lastText) + "|" + me + "|" + view;
+  if (!force && (sig === lastSig || busyTyping())) return;
+  lastSig = sig;
+  const app = $("#app");
+
+  if (g.status === "none") {
+    app.innerHTML = `
+      <h1>MIDNIGHT<br>CARNIVAL</h1>
+      <p class="sub">Silas Baylor owns this carnival,<br>and you are part of his troupe.</p>
+      <div class="panel" style="--c:var(--purple)"><div class="waiting"><div class="spin">+</div><br>The show has not started yet.<br>Keep this page open.</div></div>`;
+    return;
+  }
+
+  if (!p) {
+    app.innerHTML = `
+      <h1>MIDNIGHT<br>CARNIVAL</h1>
+      <p class="sub">Silas Baylor owns this carnival,<br>and you are part of his troupe.</p>
+      <div class="panel" id="joinForm">
+        <h2>Step right up!</h2>
+        <label class="label" for="nm">Your real name</label>
+        <input id="nm" maxlength="24" autocomplete="off" placeholder="So the host knows you">
+        <button class="btn block jagged" type="button" id="joinBtn">Draw my ticket</button>
+        <p class="msg" id="msg"></p>
+      </div>
+      <details class="panel" style="--c:var(--purple)"><summary><h2 style="display:inline;font-size:24px">Lost your ticket?</h2></summary>
+        <p class="dim" style="margin:8px 0">Ask the host for your rejoin code.</p>
+        <input id="code" maxlength="4" autocomplete="off" placeholder="ABCD" style="text-transform:uppercase">
+        <button class="btn small alt" type="button" id="codeBtn">Rejoin</button>
+      </details>`;
+    $("#codeBtn").onclick = async () => { const e = await rejoin($("#code").value); if (e) flash(e); else { lastSig = ""; renderPlayer(true); } };
+    let busy = false;
+    const doJoin = async () => {
+      if (busy) return;
+      const name = $("#nm").value.trim();
+      if (!name) { $("#msg").textContent = "Tell us your name first."; $("#nm").focus(); return; }
+      busy = true;
+      const r = await join(name);
+      if (r.error) { $("#msg").textContent = r.error; busy = false; return; }
+      Safe.set(ME, r.player.id); justJoined = true; lastSig = ""; await renderPlayer(true); justJoined = false;
+    };
+    $("#joinBtn").onclick = doJoin;
+    $("#nm").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); doJoin(); } };
+    return;
+  }
+
+  if (inCrowd(p)) { renderCrowd(g, p); return; }
+
+  const c = {...CHARACTERS[p.char], ...(g.myChar || {})};
+  const role = p.role && ROLES[p.role];
+  const pending = g.requests.find(r => r.to === p.id && r.status === "pending");
+  app.innerHTML = `
+    ${overBanner(g, p)}
+    ${phaseChip(g)}
+    <p class="sub" style="margin-top:0">Welcome, ${esc(p.name)}. Keep this screen to yourself.</p>
+    ${pending ? requestHTML(g, p, pending) : ""}
+    ${g.status === "live" ? promptsHTML(g, p) : ""}
+    <article class="ticket ${justJoined ? "deal" : ""}">
+      <div class="stub"><span>ADMIT ONE</span><span>No. ${String(p.char+1).padStart(3,"0")}</span></div>
+      <div class="who">${portraitHTML("portrait")}<div><h3>${esc(c.name)}</h3><div class="job">${esc(c.job)}</div></div></div>
+      <div class="label">Bio</div><p>${esc(c.bio)}</p>
+      <div class="label">Motive ${KNIFE}</div><p>${esc(c.motive)}</p>
+      <details><summary>Secret</summary><p style="margin-top:6px">${esc(c.secret)}</p></details>
+      <details><summary>Rumor</summary><p style="margin-top:6px">${esc(c.rumor)}</p></details>
+    </article>
+    ${role ? `
+      <div class="role" id="role" style="--rc:${role.color}" aria-label="Hold to reveal your role">
+        <div class="back"><b>?</b>HOLD TO REVEAL<br>YOUR ROLE</div>
+        <div class="front">
+          ${roleIcon(p.role, 72)}
+          <div class="rname">${role.name.toUpperCase()}</div>
+          <div class="team">${TEAM_LABEL[role.team]}</div>
+          <p>${esc(role.text)}</p>
+        </div>
+      </div>
+      <p class="sub" style="font-size:20px;margin-top:10px">Let go to hide it again.</p>`
+    : `
+      <div class="panel" style="--c:var(--purple)">
+        <div class="waiting"><div class="spin">+</div><br>The host has not dealt roles yet.<br>Keep this page open.</div>
+      </div>`}
+    ${g.status === "live" && role ? powersHTML(g, p) : ""}
+    ${g.status === "live" ? stubHTML(g, p) : ""}
+    ${g.status === "live" && g.phase === "vote" ? votePanel(g, p, "vote") : ""}
+    ${g.status !== "lobby" ? inboxHTML(g, p.id) : ""}
+    ${g.status !== "lobby" ? feedHTML(g) : ""}`;
+
+  const pc = app.querySelector(".portrait"); if (pc) drawPortrait(pc, c);
+  wireRoleCard();
+  wirePicks(g, p, "vote");
+  wirePowers(g, p);
+  wireRequest(p);
+  wirePrompts();
+  wireInbox();
+}
+
+function overBanner(g, p){
+  if (g.status !== "over" || !g.winners) return "";
+  const won = g.winners.ids.includes(p.id);
+  return `<div class="panel" style="--c:${won ? "var(--teal)" : "var(--red)"}"><h2>${won ? "YOU WIN" : "GAME OVER"}</h2><p>${esc(g.winners.text)}</p></div>`;
+}
+
+function wireRoleCard(){
+  const card = $("#role"); if (!card) return;
+  const show = e => { e.preventDefault(); card.classList.add("show"); };
+  const hide = () => card.classList.remove("show");
+  card.addEventListener("pointerdown", show);
+  ["pointerup","pointerleave","pointercancel"].forEach(ev => card.addEventListener(ev, hide));
+  card.addEventListener("contextmenu", e => e.preventDefault());
+}
+
+/* ----- Prompts that need an answer (seance) ----- */
+function promptsHTML(g, p){
+  const out = [];
+  g.seances.filter(r => r.to === p.id && r.status === "pending").forEach(r => out.push(prompt(
+    `${iconSVG("ghost",28)} A medium is calling your spirit.`, `"${esc(r.q)}"`, "seance", r.id,
+    [["yes","Yes"],["no","No"]])));
+  return out.join("");
+}
+function prompt(title, body, kind, id, buttons){
+  return `<div class="panel req" style="--c:var(--gold)"><h2>${title}</h2><p>${body}</p>
+    <div class="row" style="margin-top:10px">${buttons.map(([v,label],i) => `<button class="btn small ${i ? "ghost" : ""}" data-pr="${kind}|${id}|${v}">${label}</button>`).join("")}</div></div>`;
+}
+function wirePrompts(){
+  $("#app").querySelectorAll("[data-pr]").forEach(b => b.onclick = () => { const [kind, req, choice] = b.dataset.pr.split("|"); doAct(kind, {req, choice}); });
+}
+function stubHTML(g, p){
+  if (!g.stubsOut || !g.stubs[p.id]) return "";
+  const [sym, num] = g.stubs[p.id].split(" ");
+  return `<div class="panel" style="--c:var(--gold)">
+    <h2>Your ticket stub</h2>
+    <div class="stubcard"><span class="tear"></span><b>${sym}</b><i>${num}</i></div>
+    ${EVIL.includes(p.role) ? `<p class="dim" style="margin-top:8px">Your stub matches no one.</p>` : ""}
+  </div>`;
+}
+
+/* ----- Detective request popup ----- */
+function requestHTML(g, p, r){
+  const canLie = LIARS.includes(p.role);
+  return `<div class="panel req" style="--c:var(--gold)">
+    <h2>${iconSVG("glass",32)} The Detective is investigating you.</h2>
+    <p>Do you tell them your secret?</p>
+    <div class="row">
+      <button class="btn small" data-ans="truth">Tell the truth</button>
+      <button class="btn small ghost" data-ans="refuse">Refuse</button>
+    </div>
+    ${canLie ? `<div class="label" style="margin-top:12px">Or lie</div>
+      <select id="lie">${`<option value="">Pick a fake secret</option>` + (g.decoys[p.id] || []).map(d => `<option>${esc(d)}</option>`).join("")}</select>
+      <button class="btn small alt" data-ans="lie">Send the lie</button>` : ""}
+    <input type="hidden" id="reqId" value="${r.id}">
+  </div>`;
+}
+function wireRequest(p){
+  $("#app").querySelectorAll("[data-ans]").forEach(b => b.onclick = () => {
+    const choice = b.dataset.ans, text = $("#lie") ? $("#lie").value : "";
+    if (choice === "lie" && !text) { flash("Pick a fake secret first."); return; }
+    doAct("answer", {req:$("#reqId").value, choice, text});
+  });
+}
+
+/* ----- Voting ----- */
+function votePanel(g, p, kind){
+  const mine = kind === "vote" ? g.votes[p.id] : g.crowdVotes[p.id];
+  const targets = livingCast(g).filter(t => t.id !== p.id);
+  const ring = p.role === "ringmaster" && g.ringRevealed === p.id;
+  return `<div class="panel" style="--c:var(--gold)">
+    <h2>${kind === "vote" ? "Who should go?" : "Who did it?"}</h2>
+    ${ring ? `<p style="margin-bottom:8px;color:var(--gold)">Your vote counts three times.</p>` : ""}
+    <div class="picks">${targets.map(t => `
+      <button class="pick ${mine === t.id ? "on" : ""}" data-t="${t.id}">${portraitHTML("mini")}<span>${castLabel(t)}</span></button>`).join("")}
+    </div>
+    <p class="sub" style="font-size:20px;margin:10px 0 0">${mine ? "Vote locked in. You can change it until voting closes." : "Tap a player."}</p>
+  </div>`;
+}
+function wirePicks(g, p, kind){
+  const targets = livingCast(g).filter(t => t.id !== p.id);
+  $("#app").querySelectorAll(".pick").forEach((b,i) => {
+    drawPortrait(b.querySelector("canvas"), CHARACTERS[targets[i].char]);
+    b.onclick = () => doAct(kind, {target:b.dataset.t});
+  });
+}
+
+/* ----- Powers ----- */
+function powersHTML(g, p){
+  const u = g.uses[p.id] || {}, voting = g.phase === "vote", others = livingCast(g).filter(x => x.id !== p.id);
+  const dead = castOf(g).filter(x => !x.alive);
+  const sel = (id, list, blank) => `<select id="${id}">${opts(list, g, blank)}</select>`;
+  const waitVote = `<p class="dim">Your power works during the vote.</p>`;
+  let body = "";
+  switch (p.role) {
+    case "killer": {
+      const team = livingCast(g).filter(x => x.role === "killer" && x.id !== p.id);
+      const allTeam = castOf(g).filter(x => x.role === "killer" && x.id !== p.id);
+      body = `<p>Your fellow killers: ${allTeam.length ? allTeam.map(x => `${castLabel(x)}${x.alive ? "" : " (dead)"}`).join(", ") : "none. You work alone."}</p>`;
+      if (voting) {
+        body += `<div class="label">Your victim</div>${sel("t1", others.filter(x => x.role !== "killer"), "Choose a victim")}<button class="btn small" data-do="kill">Mark them</button>`;
+        const picks = Object.entries(g.act.kill || {});
+        if (picks.length) body += `<p class="dim" style="margin-top:8px">${picks.map(([k,t]) => `${k === p.id ? "You" : esc(charName(g,k))}: ${esc(charName(g,t))}`).join("<br>")}</p>`;
+        if (team.length) body += `<p class="dim">Most picks wins. Ties are decided at random.</p>`;
+      } else body += waitVote;
+      break;
+    }
+    case "stooge": {
+      const ks = castOf(g).filter(x => x.role === "killer");
+      body = `<p>The killers: ${ks.map(x => `${castLabel(x)}${x.alive ? "" : " (dead)"}`).join(", ")}. They do not know you.</p>`;
+      break;
+    }
+    case "werewolf":
+      body = isFullMoon(g)
+        ? (voting ? `<div class="label">Tonight's prey</div>${sel("t1", others, "Choose prey")}<button class="btn small" data-do="wolf">Hunt</button>${g.act.wolf ? `<p class="dim">Hunting ${esc(charName(g,g.act.wolf))}.</p>` : ""}` : `<p>The moon is full. You can hunt during the vote.</p>`)
+        : `<p class="dim">No full moon this round. Next round.</p>`;
+      break;
+    case "jester":
+      body = p.formerRole ? `<p>You were the Loan Shark. Now you want to be voted out.</p>` : `<p>Get yourself voted out. You can haunt someone after you die.</p>`;
+      break;
+    case "loanshark":
+      body = `<p>Your debtor: <b>${g.loan[p.id] ? castLabel(byId(g,g.loan[p.id])) : "nobody"}</b>. Get them voted out.</p>`;
+      break;
+    case "stowaway":
+      body = `<p>Stay alive. Make friends who will keep you that way.</p>`;
+      break;
+    case "ventriloquist":
+    case "tipster":
+      body = u.tips ? `<div class="label">Anonymous message (${u.tips} left)</div><textarea id="tx" maxlength="${MSG_MAX}" rows="2" placeholder="Everyone will see this"></textarea><button class="btn small" data-do="tip">Send to every phone</button>` : `<p class="dim">You have used all your messages.</p>`;
+      break;
+    case "detective": {
+      const done = u.investigated === g.round;
+      body = done ? `<p class="dim">You investigated this round. Check your messages.</p>`
+        : `<div class="label">Investigate</div>${sel("t1", others, "Choose a suspect")}<button class="btn small" data-do="investigate">Ask for their secret</button>`;
+      break;
+    }
+    case "strongman":
+      body = voting ? `<div class="label">Protect</div>${sel("t1", others.filter(x => x.id !== g.lastProtect), "Choose someone")}<button class="btn small" data-do="protect">Stand guard</button>${g.act.protect ? `<p class="dim">Guarding ${esc(charName(g,g.act.protect))}.</p>` : ""}` : waitVote;
+      break;
+    case "ringmaster":
+      body = g.ringRevealed === p.id ? `<p>Everyone knows. Your vote counts three times.</p>` : `<p>Revealing tells every phone who you are.</p><button class="btn small" data-do="reveal">Reveal myself</button>`;
+      break;
+    case "insomniac":
+      body = !isFullMoon(g) ? `<p class="dim">You slept this round. Next round you stay awake.</p>`
+        : u.insomniac === g.round ? `<p class="dim">You already stayed up this round. Check your messages.</p>`
+        : `<button class="btn small" data-do="insomniac">Stay awake</button>`;
+      break;
+    case "medium":
+      body = u.medium === g.round ? `<p class="dim">You reached out this round. Check your messages.</p>`
+        : dead.length ? `<div class="label">Contact the dead</div>${sel("t1", dead, "Choose a dead troupe member")}<div class="label">Your question</div><select id="q">${SEANCE_Q.map((q,i) => `<option value="${i}">${esc(q)}</option>`).join("")}</select><button class="btn small" data-do="medium">Hold a seance</button>`
+        : `<p class="dim">Nobody has died yet.</p>`;
+      break;
+    case "sweetheart": {
+      const sw = castOf(g).find(x => x.role === "sweetheart" && x.id !== p.id);
+      body = `<p>Your sweetheart: <b>${sw ? castLabel(sw) : "nobody"}</b>.</p>`;
+      break;
+    }
+    case "sharpshooter":
+      body = u.bullets ? `<div class="label">Bullets: ${"&#9679; ".repeat(u.bullets)}</div>${sel("t1", others, "Choose a target")}<button class="btn small" data-do="shoot">Fire</button>` : `<p class="dim">Out of bullets.</p>`;
+      break;
+    case "heckler":
+      body = u.heckled ? `<p class="dim">You already used your heckle.</p>` : voting ? `<div class="label">Shout down</div>${sel("t1", others, "Choose someone")}<button class="btn small" data-do="heckle">Heckle</button>` : waitVote;
+      break;
+    case "hypnotist":
+      body = u.hypno ? `<p class="dim">You already used your hypnosis.</p>` : voting
+        ? `<div class="label">Hypnotize</div>${sel("t1", others, "Whose vote")}<div class="label">Make them vote for</div>${sel("t2", livingCast(g), "Who")}<button class="btn small" data-do="hypno">Swing the watch</button>` : waitVote;
+      break;
+    case "watchman":
+      body = voting ? `<div class="label">Watch</div>${sel("t1", others, "Choose someone")}<button class="btn small" data-do="watch">Keep an eye on them</button>${g.act.watch ? `<p class="dim">Watching ${esc(charName(g,g.act.watch))}.</p>` : ""}` : waitVote;
+      break;
+    case "daredevil":
+      body = g.act.brace === p.id ? `<p>Braced for this round.</p>` : !u.braces ? `<p class="dim">No braces left.</p>` : voting ? `<button class="btn small" data-do="brace">Brace (${u.braces} left)</button>` : waitVote;
+      break;
+    default:
+      body = `<p class="dim">No powers. Keep your eyes open.</p>`;
+  }
+  return `<details class="panel powers" style="--c:${ROLES[p.role].color}"><summary><h2 style="display:inline">Your powers</h2></summary><div style="margin-top:10px">${body}</div></details>`;
+}
+function wirePowers(g, p){
+  const box = $("#app").querySelector(".powers"); if (!box) return;
+  const keepOpen = Safe.get("mc-powers-open") === "1"; if (keepOpen) box.open = true;
+  box.addEventListener("toggle", () => Safe.set("mc-powers-open", box.open ? "1" : "0"));
+  box.querySelectorAll("[data-do]").forEach(b => b.onclick = () => {
+    const kind = b.dataset.do, t1 = $("#t1") && $("#t1").value, t2 = $("#t2") && $("#t2").value, tx = $("#tx") && $("#tx").value;
+    if ($("#t1") && !t1) { flash("Choose a player first."); return; }
+    doAct(kind, {target:t1, to:t2, text:tx, q:$("#q") && $("#q").value});
+  });
+}
+
+/* =========================================================
+   CROWD VIEW (late arrivals + the dead)
+   ========================================================= */
+function renderCrowd(g, p){
+  const app = $("#app");
+  const was = !p.spectator ? CHARACTERS[p.char] : null;
+  const u = g.uses[p.id] || {};
+  const canHaunt = p.role === "jester" && !p.alive && !u.haunted && g.status === "live";
+  app.innerHTML = `
+    ${overBanner(g, p)}
+    ${phaseChip(g)}
+    ${was ? `
+      <div class="panel" style="--c:var(--red)">
+        <h2>YOU'RE OUT</h2>
+        <p>You were ${esc(was.name)}${p.role ? `, the ${esc(ROLES[p.role].name)}` : ""}.</p>
+        <p class="nospoil">No spoilers. Do not tell anyone your role, how you died, or anything you know.</p>
+      </div>` : `<p class="sub" style="margin-top:0">Welcome, ${esc(p.name)}.</p>`}
+    ${g.status === "live" ? promptsHTML(g, p) : ""}
+    <article class="ticket ${justJoined ? "deal" : ""}">
+      <div class="stub"><span>${was ? "GHOST PASS" : "GENERAL ADMISSION"}</span><span>CROWD</span></div>
+      <div class="who">${portraitHTML("portrait")}<div><h3>Spectator</h3><div class="job">${was ? "Formerly " + esc(was.name) : "The crowd"}</div></div></div>
+      <div class="label">Bio</div>
+      <p>${was ? "You are out of the show. You still have a seat in the stands. And a vote." : "The troupe was full when you arrived. No act. No motive. No secrets. Just a vote."}</p>
+      <div class="label">How the crowd votes</div>
+      <p>The crowd votes as one. Most picks wins. Ties do not count.</p>
+    </article>
+    ${canHaunt ? `<div class="panel" style="--c:var(--pink)"><h2>${iconSVG("ghost",28)} Haunt someone</h2>
+      <select id="t1">${opts(livingCast(g), g, "Choose who to haunt")}</select>
+      <textarea id="tx" maxlength="${MSG_MAX}" rows="2" placeholder="What do you whisper?"></textarea>
+      <button class="btn small" id="hauntBtn">Haunt them</button></div>` : ""}
+    ${g.status !== "live" ? `<div class="panel" style="--c:var(--purple)"><div class="waiting">${g.status === "over" ? "The show is over." : "The show has not started yet."}</div></div>`
+      : g.phase === "vote" ? votePanel(g, p, "crowdvote")
+      : `<div class="panel" style="--c:var(--purple)"><div class="waiting"><div class="spin">+</div><br>Voting is closed.<br>Wait for the host.</div></div>`}
+    ${inboxHTML(g, p.id)}
+    ${feedHTML(g)}`;
+  const pc = app.querySelector(".portrait"); if (pc) drawSilhouette(pc);
+  if (g.phase === "vote" && g.status === "live") wirePicks(g, p, "crowdvote");
+  wirePrompts();
+  wireInbox();
+  if ($("#hauntBtn")) $("#hauntBtn").onclick = () => { if (!$("#t1").value) return flash("Choose a player first."); doAct("haunt", {target:$("#t1").value, text:$("#tx").value}); };
+}
+
+/* =========================================================
+   ADMIN VIEW
+   ========================================================= */
+let showRoles = true;
+function armed(btn, label){
+  if (btn.dataset.armed) return true;
+  const old = btn.textContent; btn.dataset.armed = "1"; btn.textContent = label;
+  setTimeout(() => { if (btn.isConnected) { delete btn.dataset.armed; btn.textContent = old; } }, 3000);
+  return false;
+}
+async function renderAdmin(force){
+  const app = $("#app");
+  if (Safe.get("mc-admin") !== "1") {
+    if ($("#pinForm")) return;
+    app.innerHTML = `
+      <h1>HOST<br>BOOTH</h1>
+      <div class="panel" id="pinForm" style="margin-top:24px">
+        <h2>Ringmaster only</h2>
+        <label class="label" for="pin">PIN</label>
+        <input id="pin" type="password" autocomplete="off">
+        <button class="btn block" type="button" id="pinBtn">Enter</button>
+        <p class="msg" id="msg"></p>
+      </div>`;
+    const tryPin = async () => {
+      Safe.set(PIN, $("#pin").value);
+      try { const r = await call("GET"); if (r.status === 200) { Safe.set("mc-admin","1"); take(r.data); renderAdmin(true); } else $("#msg").textContent = "Wrong PIN."; }
+      catch { $("#msg").textContent = "Could not reach the carnival."; }
+    };
+    $("#pinBtn").onclick = tryPin;
+    $("#pin").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); tryPin(); } };
+    return;
+  }
+  const g = await Store.load();
+  const sig = "A" + sigOf(lastText) + showRoles;
+  if (!force && (sig === lastSig || busyTyping())) return;
+  lastSig = sig;
+  if (g.status === "none") return renderSetup(g);
+
+  const cast = castOf(g), alive = livingCast(g), crowd = g.players.filter(inCrowd);
+  const killersLeft = alive.filter(p => p.role === "killer").length;
+  const rows = g.players.map((p,i) => {
+    const r = p.role ? ROLES[p.role] : null;
+    return `<tr class="${p.alive || p.spectator ? "" : "dead"}">
+      <td class="num">${i+1}</td>
+      <td>${esc(p.name)}</td>
+      <td class="hide-sm">${portraitHTML("mini")} ${p.spectator ? `<span class="dim">Spectator</span>` : esc(CHARACTERS[p.char].name)}</td>
+      <td>${p.spectator ? `<span class="badge" style="--rc:#b9a6d6">Crowd</span>` : r ? `<span class="badge" style="--rc:${r.color}">${roleIcon(p.role,16)} ${r.name}</span>${p.formerRole ? ` <span class="dim">(was ${ROLES[p.formerRole].name})</span>` : ""}` : `<span class="dim">Not dealt</span>`}<br><span class="dim" style="font-size:18px">Code ${p.code}${g.stubs && g.stubs[p.id] ? ` &middot; Stub ${g.stubs[p.id]}` : ""}</span></td>
+      <td style="text-align:right">${p.spectator || g.status !== "live" ? "" : `<button class="btn small ${p.alive ? "" : "alt"}" data-id="${p.id}">${p.alive ? "Out" : "Undo"}</button>`}</td>
+    </tr>`;
+  }).join("");
+
+  let control = "";
+  if (g.status === "lobby") control = `
+    <div class="panel" style="--c:var(--teal)">
+      <h2>Lobby is open</h2>
+      <p>${cast.length} of ${g.settings.castCap} character slots filled. ${g.settings.killers} killer${g.settings.killers > 1 ? "s" : ""}.</p>
+      <div class="stepper" style="margin:10px 0">
+        <span class="dim">Cast size</span>
+        <button class="btn small alt" data-cap="-1">-1</button><b>${g.settings.castCap}</b><button class="btn small alt" data-cap="1">+1</button>
+      </div>
+      <button class="btn" id="dealBtn" ${cast.length < 4 ? "disabled" : ""}>Deal roles and start</button>
+      ${cast.length < 4 ? `<p class="dim" style="margin-top:6px">Need at least 4 players.</p>` : ""}
+    </div>`;
+  if (g.status === "live") {
+    const t = g.tally || {ranked:[]};
+    control = `
+    <div class="panel" style="--c:var(--gold)">
+      <h2>Round ${g.round} &middot; ${g.phase === "vote" ? "Voting" : "Mingle"}${isFullMoon(g) ? " &middot; Full moon" : ""}</h2>
+      ${g.phase === "mingle"
+        ? `<p>Let them talk. Open the vote when you are ready.</p><button class="btn" id="openBtn">Open the vote</button>`
+        : `<p>${Object.keys(g.votes).length} of ${alive.length} living players have voted. ${crowd.length ? `Crowd: ${Object.keys(g.crowdVotes).length} of ${crowd.length}.` : ""}</p>
+           ${t.ranked.length ? `<ul class="tally">${t.ranked.map(([id,n]) => `<li>${n} &times; ${castLabel(byId(g,id))}</li>`).join("")}</ul>` : ""}
+           <p class="dim">Night actions so far: ${[
+             Object.keys(g.act.kill || {}).length ? `killers picked ${[...new Set(Object.values(g.act.kill))].map(x => esc(charName(g,x))).join(", ")}` : "",
+             g.act.wolf ? `werewolf hunting ${esc(charName(g,g.act.wolf))}` : "",
+             g.act.protect ? `Strongman guarding ${esc(charName(g,g.act.protect))}` : "",
+             g.act.brace ? `Daredevil braced` : "",
+             g.act.heckle ? `${esc(charName(g,g.act.heckle))} heckled` : "",
+             g.act.hypno ? `${esc(charName(g,g.act.hypno.who))} hypnotized` : ""].filter(Boolean).join(", ") || "none"}</p>
+           <button class="btn" id="closeBtn">Close the vote and reveal</button>`}
+    </div>`;
+  }
+  const banner = g.status === "over" && g.winners ? `<div class="panel" style="--c:var(--teal)"><h2>${esc(g.winners.text)}</h2><p>Winners: ${g.winners.ids.map(id => esc(who(g,id))).join(", ") || "nobody"}</p></div>` : "";
+  const lastRes = g.results.length ? `<div class="panel" style="--c:var(--red)"><h2>Last results</h2>${g.results.slice(-1)[0].lines.map(l => `<p>${esc(l)}</p>`).join("")}</div>` : "";
+
+  app.innerHTML = `
+    <h1>HOST<br>BOOTH</h1>
+    <p class="sub">Victim: ${esc(VICTIM)}</p>
+    ${banner}
+    <div class="stats">
+      <div class="stat"><b>${alive.length}</b><span>Alive</span></div>
+      <div class="stat"><b>${crowd.length}</b><span>Crowd</span></div>
+      <div class="stat danger"><b>${g.status === "lobby" ? "-" : killersLeft}</b><span>Killers left</span></div>
+      <div class="stat"><b>${g.status === "lobby" ? "LOBBY" : g.status === "over" ? "OVER" : "R" + g.round}</b><span>Status</span></div>
+    </div>
+    ${control}
+    ${g.status === "live" ? `<div class="panel" style="--c:var(--pink)">
+      <h2>Timer</h2>
+      ${timerHTML(g, true) || `<p class="dim">No timer running. Phones show it when you start one.</p>`}
+      <div class="row" style="margin-top:10px">${[1,2,3,5,10].map(m => `<button class="btn small alt" data-tm="${m*60}">${m} min</button>`).join("")}${g.timer ? `<button class="btn small ghost" data-tm="0">Stop</button>` : ""}</div>
+    </div>` : ""}
+    ${lastRes}
+    <div class="toolbar">
+      <button class="btn alt" id="eyeBtn">${showRoles ? "Hide roles" : "Show roles"}</button>
+      <span class="spacer"></span>
+      <button class="btn ghost" id="resetBtn">End game</button>
+    </div>
+    <div class="panel ${showRoles ? "" : "blur"}" style="--c:var(--teal);padding:10px;overflow-x:auto">
+      ${g.players.length ? `<table><thead><tr><th>#</th><th>Guest</th><th class="hide-sm">Character</th><th>Role</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+        : `<p class="waiting">No guests yet. Put the QR code out.</p>`}
+    </div>
+    ${g.log.length ? `<details class="panel" style="--c:var(--purple)"><summary><h2 style="display:inline">Host log (${g.log.length})</h2></summary>
+      ${g.log.slice().reverse().map(l => `<p class="logline"><span class="dim">R${l.r}</span> ${esc(l.text)}</p>`).join("")}</details>` : ""}
+    <div class="panel" style="--c:var(--pink)">
+      <h2>Guest QR code</h2>
+      <div class="qr"><div id="qrbox"></div><div>Guests scan this to join.<br><code>${esc(location.origin + location.pathname)}</code></div></div>
+    </div>`;
+
+  app.querySelectorAll("canvas.mini").forEach((cv,i) => { const p = g.players[i]; p.spectator ? drawSilhouette(cv) : drawPortrait(cv, CHARACTERS[p.char]); });
+  if (window.QRCode) new QRCode($("#qrbox"), {text: location.origin + location.pathname, width:160, height:160, colorDark:"#07040d", colorLight:"#f3dfb4"});
+  const go = async fn => { await fn(); renderAdmin(true); };
+  if ($("#dealBtn")) $("#dealBtn").onclick = () => go(deal);
+  app.querySelectorAll("[data-tm]").forEach(b => b.onclick = () => go(() => setTimer(Number(b.dataset.tm))));
+  if ($("#openBtn")) $("#openBtn").onclick = () => go(openVote);
+  if ($("#closeBtn")) $("#closeBtn").onclick = () => go(closeVote);
+  app.querySelectorAll("button[data-cap]").forEach(b => b.onclick = () => go(() => setCap(g.settings.castCap + Number(b.dataset.cap))));
+  $("#eyeBtn").onclick = () => { showRoles = !showRoles; renderAdmin(true); };
+  $("#resetBtn").onclick = () => { if (armed($("#resetBtn"), "Tap again to end")) go(wipe); };
+  app.querySelectorAll("button[data-id]").forEach(b => b.onclick = () => go(() => hostToggle(b.dataset.id)));
+}
+
+function renderSetup(g){
+  const s = g.settings;
+  $("#app").innerHTML = `
+    <h1>HOST<br>BOOTH</h1>
+    <p class="sub">Set up tonight's show. Guests see "not started" until you open the lobby.</p>
+    <div class="panel" style="--c:var(--red)">
+      <h2>Killers</h2>
+      <div class="seg">${[1,2,3].map(n => `<button class="btn small ${s.killers === n ? "" : "ghost"}" data-k="${n}">${n}</button>`).join("")}</div>
+    </div>
+    <div class="panel" style="--c:var(--purple)">
+      <h2>Cast size</h2>
+      <p class="dim" style="margin-bottom:8px">Everyone past this number joins as a spectator.</p>
+      <div class="stepper"><button class="btn small alt" data-cap="-5">-5</button><button class="btn small alt" data-cap="-1">-1</button><b>${s.castCap}</b><button class="btn small alt" data-cap="1">+1</button><button class="btn small alt" data-cap="5">+5</button></div>
+    </div>
+    <div class="panel" style="--c:var(--teal)">
+      <h2>Special roles</h2>
+      <p class="dim" style="margin-bottom:8px">Tap to switch on or off. Roles that do not fit the cast size drop out from the bottom of the list.</p>
+      <div class="toggles">${SPECIAL_ORDER.map(r => `
+        <button class="tog ${s.roles[r] ? "on" : ""}" data-r="${r}">${roleIcon(r,28)}<span>${ROLES[r].name}${COUNTS[r] ? ` x${COUNTS[r]}` : ""}<small>${TEAM_LABEL[ROLES[r].team]}</small></span></button>`).join("")}
+      </div>
+    </div>
+    <button class="btn block jagged" id="lobbyBtn">Open the lobby</button>`;
+  const save = async fn => { fn(s); await saveSettings(s); renderAdmin(true); };
+  $("#app").querySelectorAll("[data-k]").forEach(b => b.onclick = () => save(s => s.killers = Number(b.dataset.k)));
+  $("#app").querySelectorAll("[data-cap]").forEach(b => b.onclick = () => save(s => s.castCap = Math.max(4, Math.min(MAX_PLAYERS, s.castCap + Number(b.dataset.cap)))));
+  $("#app").querySelectorAll("[data-r]").forEach(b => b.onclick = () => save(s => s.roles[b.dataset.r] = !s.roles[b.dataset.r]));
+  $("#lobbyBtn").onclick = async () => { await startLobby(); renderAdmin(true); };
+}
+
+/* =========================================================
+   ROUTER + SKETCH-MODE CONTROLS
+   ========================================================= */
+function route(){ lastSig = ""; isAdmin() ? renderAdmin(true) : renderPlayer(true); }
+window.addEventListener("hashchange", () => { view = location.hash === "#admin" ? "admin" : "player"; route(); });
+// Poll every 4 seconds while the page is visible; refresh right away when it comes back
+setInterval(() => { if (!document.hidden) { isAdmin() ? renderAdmin() : renderPlayer(); } }, 4000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) route(); });
+route();
+
+</script>
+</body>
+</html>
